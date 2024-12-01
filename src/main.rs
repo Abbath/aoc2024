@@ -1,5 +1,7 @@
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::{prelude::*, BufReader};
+use std::time::Instant;
 
 fn day_01() {
     let file = File::open("input/input_01.txt").unwrap();
@@ -9,7 +11,7 @@ fn day_01() {
         .iter()
         .map(|line| {
             let parts: Vec<_> = line
-                .split("   ")
+                .split_whitespace()
                 .map(|c| c.parse::<i64>().unwrap())
                 .collect();
             (parts[0], parts[1])
@@ -22,18 +24,17 @@ fn day_01() {
         .zip(right.iter())
         .map(|(a, b)| (a - b).abs())
         .sum();
-    let sum2: i64 = left
-        .iter()
-        .map(|n| {
-            n * right
-                .iter()
-                .map(|m| if m == n { 1 } else { 0 })
-                .sum::<i64>()
-        })
-        .sum();
+    let mut hm: HashMap<i64, i64> = HashMap::new();
+    right.iter().for_each(|n| {
+        *hm.entry(*n).or_default() += 1;
+    });
+    let sum2: i64 = left.iter().map(|n| n * hm.get(n).unwrap_or(&0)).sum();
     println!("day01 {sum} {sum2}");
 }
 
 fn main() {
+    let now = Instant::now();
     day_01();
+    let elapsed = now.elapsed();
+    println!("Elapsed: {elapsed:?}");
 }
