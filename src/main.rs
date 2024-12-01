@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 use std::fs;
-use std::time::Instant;
 
 fn day_01() {
     let (mut left, mut right): (Vec<_>, Vec<_>) = fs::read_to_string("input/input_01.txt")
@@ -30,8 +29,5 @@ fn day_01() {
 }
 
 fn main() {
-    let now = Instant::now();
     day_01();
-    let elapsed = now.elapsed();
-    println!("Elapsed: {elapsed:?}");
 }
