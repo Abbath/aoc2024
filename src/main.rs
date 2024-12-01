@@ -15,10 +15,10 @@ fn day_01() {
         .unzip();
     left.sort();
     right.sort();
-    let sum: i64 = left
+    let sum: u64 = left
         .iter()
         .zip(right.iter())
-        .map(|(a, b)| (a - b).abs())
+        .map(|(a, &b)| a.abs_diff(b))
         .sum();
     let mut hm: HashMap<i64, i64> = HashMap::new();
     right.iter().for_each(|&n| {
