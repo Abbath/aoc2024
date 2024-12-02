@@ -39,8 +39,30 @@ fn day_02() {
         })
         .collect();
     let check_safety = |ns: &Vec<i64>| {
-        (ns.is_sorted_by(|a, b| a < b && b - a <= 3) || ns.is_sorted_by(|a, b| a > b && a - b <= 3))
+        (ns.is_sorted_by(|a, b| a < b && b - a < 4) || ns.is_sorted_by(|a, b| a > b && a - b < 4))
             as i64
+    };
+    let check_safety2 = |ns: &Vec<i64>, check: fn(i64, i64) -> bool| {
+        let v: Vec<_> = ns.windows(2).map(|p| check(p[0], p[1])).collect();
+        let c1 = v.windows(2).filter(|p| !p[0] && !p[1]).count() == 1;
+        let c2 = v.iter().filter(|&p| !p).count();
+        if c1 && c2 == 2 {
+            let idx = v.iter().position(|p| !p).unwrap();
+            if check(ns[idx], ns[idx + 2]) {
+                return true;
+            }
+        }
+        if c2 == 1 {
+            let idx = v.iter().position(|p| !p).unwrap();
+            if idx == 0 && !check(ns[idx], ns[idx + 1])
+                || idx == ns.len() - 2 && !check(ns[idx], ns[idx + 1])
+                || idx < ns.len() - 2 && check(ns[idx], ns[idx + 2])
+                || idx > 0 && check(ns[idx - 1], ns[idx + 1])
+            {
+                return true;
+            }
+        }
+        false
     };
     let sum: i64 = nums.iter().map(check_safety).sum();
     let sum2: i64 = nums
@@ -49,16 +71,8 @@ fn day_02() {
             if check_safety(ns) == 1 {
                 1
             } else {
-                (0..ns.len())
-                    .map(|n| {
-                        let nss: Vec<_> = ns
-                            .iter()
-                            .enumerate()
-                            .filter_map(|(i, &e)| if i != n { Some(e) } else { None })
-                            .collect();
-                        nss
-                    })
-                    .any(|nss| check_safety(&nss) != 0) as i64
+                (check_safety2(ns, |a, b| a < b && b - a < 4)
+                    || check_safety2(ns, |a, b| a > b && a - b < 4)) as i64
             }
         })
         .sum();
