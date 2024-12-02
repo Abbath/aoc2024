@@ -39,8 +39,8 @@ fn day_02() {
         })
         .collect();
     let check_safety = |ns: &Vec<i64>| {
-        (ns.is_sorted_by(|a, b| a < b && a.abs_diff(*b) <= 3)
-            || ns.is_sorted_by(|a, b| a > b && a.abs_diff(*b) <= 3)) as i64
+        (ns.is_sorted_by(|a, b| a < b && b - a <= 3) || ns.is_sorted_by(|a, b| a > b && a - b <= 3))
+            as i64
     };
     let sum: i64 = nums.iter().map(check_safety).sum();
     let sum2: i64 = nums
