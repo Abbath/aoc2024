@@ -28,6 +28,40 @@ fn day_01() {
     println!("day01 {sum} {sum2}");
 }
 
+fn day_02() {
+    let nums: Vec<Vec<_>> = fs::read_to_string("input/input_02.txt")
+        .unwrap()
+        .lines()
+        .map(|line| {
+            line.split_whitespace()
+                .map(|s| s.parse::<i64>().unwrap())
+                .collect()
+        })
+        .collect();
+    let check_safety = |ns: &Vec<i64>| {
+        (ns.is_sorted_by(|a, b| a < b && a.abs_diff(*b) <= 3)
+            || ns.is_sorted_by(|a, b| a > b && a.abs_diff(*b) <= 3)) as i64
+    };
+    let sum: i64 = nums.iter().map(check_safety).sum();
+    let sum2: i64 = nums
+        .iter()
+        .map(|ns| {
+            (0..ns.len())
+                .map(|n| {
+                    let nss: Vec<_> = ns
+                        .iter()
+                        .enumerate()
+                        .filter_map(|(i, &e)| if i != n { Some(e) } else { None })
+                        .collect();
+                    nss
+                })
+                .any(|nss| check_safety(&nss) != 0) as i64
+        })
+        .sum();
+    println!("day02 {sum} {sum2}");
+}
+
 fn main() {
     day_01();
+    day_02();
 }
