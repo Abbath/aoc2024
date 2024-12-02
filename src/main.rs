@@ -44,7 +44,7 @@ fn day_02() {
     };
     let check_safety2 = |ns: &Vec<i64>, check: fn(i64, i64) -> bool| {
         let v: Vec<_> = ns.windows(2).map(|p| check(p[0], p[1])).collect();
-        let c1 = v.windows(2).filter(|p| !p[0] && !p[1]).count() == 1;
+        let c1 = v.windows(2).filter(|p| !(p[0] || p[1])).count() == 1;
         let c2 = v.iter().filter(|&p| !p).count();
         if c1 && c2 == 2 {
             let idx = v.iter().position(|p| !p).unwrap();
