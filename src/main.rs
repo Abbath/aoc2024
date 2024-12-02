@@ -46,16 +46,20 @@ fn day_02() {
     let sum2: i64 = nums
         .iter()
         .map(|ns| {
-            (0..ns.len())
-                .map(|n| {
-                    let nss: Vec<_> = ns
-                        .iter()
-                        .enumerate()
-                        .filter_map(|(i, &e)| if i != n { Some(e) } else { None })
-                        .collect();
-                    nss
-                })
-                .any(|nss| check_safety(&nss) != 0) as i64
+            if check_safety(ns) == 1 {
+                1
+            } else {
+                (0..ns.len())
+                    .map(|n| {
+                        let nss: Vec<_> = ns
+                            .iter()
+                            .enumerate()
+                            .filter_map(|(i, &e)| if i != n { Some(e) } else { None })
+                            .collect();
+                        nss
+                    })
+                    .any(|nss| check_safety(&nss) != 0) as i64
+            }
         })
         .sum();
     println!("day02 {sum} {sum2}");
