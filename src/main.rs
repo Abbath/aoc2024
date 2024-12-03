@@ -97,8 +97,8 @@ fn day_03() {
         }
         let mut state = State::S;
         let mut idx = 0usize;
-        let mut d1s: Vec<char> = Vec::new();
-        let mut d2s: Vec<char> = Vec::new();
+        let mut d1 = 0u64;
+        let mut d2 = 0u64;
         let mut sum = 0u64;
         let mut enabled = old_enabled;
         loop {
@@ -137,37 +137,44 @@ fn day_03() {
                     }
                 }
                 State::D1 => {
-                    if c.is_ascii_digit() {
-                        d1s.push(c);
-                    } else {
-                        idx -= 1;
+                    let s = line
+                        .chars()
+                        .skip(idx)
+                        .take_while(|c| c.is_ascii_digit())
+                        .collect::<String>();
+                    if let Ok(d) = s.parse::<u64>() {
+                        d1 = d;
+                        idx += s.len() - 1;
                         state = State::C;
+                    } else {
+                        state = State::S;
                     }
                 }
                 State::C => {
                     if c == ',' {
                         state = State::D2;
                     } else {
-                        d1s.clear();
                         state = State::S;
                     }
                 }
                 State::D2 => {
-                    if c.is_ascii_digit() {
-                        d2s.push(c)
-                    } else {
-                        idx -= 1;
+                    let s = line
+                        .chars()
+                        .skip(idx)
+                        .take_while(|c| c.is_ascii_digit())
+                        .collect::<String>();
+                    if let Ok(d) = s.parse::<u64>() {
+                        d2 = d;
+                        idx += s.len() - 1;
                         state = State::RP;
+                    } else {
+                        state = State::S;
                     }
                 }
                 State::RP => {
                     if c == ')' {
-                        let d1: u64 = d1s.iter().collect::<String>().parse().unwrap();
-                        let d2: u64 = d2s.iter().collect::<String>().parse().unwrap();
                         sum += d1 * d2;
                     }
-                    d1s.clear();
-                    d2s.clear();
                     state = State::S;
                 }
             }
