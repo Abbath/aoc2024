@@ -81,105 +81,100 @@ fn day_02() {
 
 fn day_03() {
     let line: String = fs::read_to_string("input/input_03.txt").unwrap();
-    fn compute(line: &str, enabling: bool) -> u64 {
-        enum State {
-            S,
-            D,
-            M,
-            D1,
-            C,
-            D2,
-            RP,
-        }
-        let mut state = State::S;
-        let mut idx = 0usize;
-        let mut d1 = 0u64;
-        let mut d2 = 0u64;
-        let mut sum = 0u64;
-        let mut enabled = true;
-        loop {
-            if idx >= line.len() {
-                break;
-            }
-            let c = line.chars().nth(idx).unwrap();
-            match state {
-                State::S => {
-                    if (!enabling || enabled) && c == 'm' {
-                        idx -= 1;
-                        state = State::M;
-                    }
-                    if enabling && c == 'd' {
-                        idx -= 1;
-                        state = State::D;
-                    }
-                }
-                State::D => {
-                    if idx + 4 <= line.len() && line[idx..idx + 4] == *"do()" {
-                        idx += 3;
-                        enabled = true;
-                    }
-                    if idx + 7 <= line.len() && line[idx..idx + 7] == *"don't()" {
-                        idx += 6;
-                        enabled = false;
-                    }
-                    state = State::S;
-                }
-                State::M => {
-                    if idx + 4 <= line.len() && line[idx..idx + 4] == *"mul(" {
-                        idx += 3;
-                        state = State::D1;
-                    } else {
-                        state = State::S;
-                    }
-                }
-                State::D1 => {
-                    let s = line
-                        .chars()
-                        .skip(idx)
-                        .take_while(|c| c.is_ascii_digit())
-                        .collect::<String>();
-                    if let Ok(d) = s.parse::<u64>() {
-                        d1 = d;
-                        idx += s.len() - 1;
-                        state = State::C;
-                    } else {
-                        state = State::S;
-                    }
-                }
-                State::C => {
-                    if c == ',' {
-                        state = State::D2;
-                    } else {
-                        state = State::S;
-                    }
-                }
-                State::D2 => {
-                    let s = line
-                        .chars()
-                        .skip(idx)
-                        .take_while(|c| c.is_ascii_digit())
-                        .collect::<String>();
-                    if let Ok(d) = s.parse::<u64>() {
-                        d2 = d;
-                        idx += s.len() - 1;
-                        state = State::RP;
-                    } else {
-                        state = State::S;
-                    }
-                }
-                State::RP => {
-                    if c == ')' {
-                        sum += d1 * d2;
-                    }
-                    state = State::S;
-                }
-            }
-            idx += 1;
-        }
-        sum
+    let mut sum = 0u64;
+    let mut sum2 = 0u64;
+    enum State {
+        S,
+        D,
+        M,
+        D1,
+        C,
+        D2,
+        RP,
     }
-    let sum = compute(&line, false);
-    let sum2 = compute(&line, true);
+    let mut state = State::S;
+    let mut idx = 0usize;
+    let mut d1 = 0u64;
+    let mut d2 = 0u64;
+    let mut enabled = true;
+    let read_digits = |i: &usize| -> String {
+        line.chars()
+            .skip(*i)
+            .take_while(|c| c.is_ascii_digit())
+            .collect::<String>()
+    };
+    while idx < line.len() {
+        let c = line.chars().nth(idx).unwrap();
+        match state {
+            State::S => {
+                if c == 'm' {
+                    idx -= 1;
+                    state = State::M;
+                }
+                if c == 'd' {
+                    idx -= 1;
+                    state = State::D;
+                }
+            }
+            State::D => {
+                if idx + 4 <= line.len() && line[idx..idx + 4] == *"do()" {
+                    idx += 3;
+                    enabled = true;
+                }
+                if idx + 7 <= line.len() && line[idx..idx + 7] == *"don't()" {
+                    idx += 6;
+                    enabled = false;
+                }
+                state = State::S;
+            }
+            State::M => {
+                if idx + 4 <= line.len() && line[idx..idx + 4] == *"mul(" {
+                    idx += 3;
+                    state = State::D1;
+                } else {
+                    state = State::S;
+                }
+            }
+            State::D1 => {
+                let s = read_digits(&idx);
+                if let Ok(d) = s.parse::<u64>() {
+                    d1 = d;
+                    idx += s.len() - 1;
+                    state = State::C;
+                } else {
+                    state = State::S;
+                }
+            }
+            State::C => {
+                if c == ',' {
+                    state = State::D2;
+                } else {
+                    state = State::S;
+                }
+            }
+            State::D2 => {
+                let s = read_digits(&idx);
+                if let Ok(d) = s.parse::<u64>() {
+                    d2 = d;
+                    idx += s.len() - 1;
+                    state = State::RP;
+                } else {
+                    state = State::S;
+                }
+            }
+            State::RP => {
+                if c == ')' {
+                    let pr = d1 * d2;
+                    sum += pr;
+                    if enabled {
+                        sum2 += pr;
+                    }
+                }
+                state = State::S;
+            }
+        }
+        idx += 1;
+    }
     println!("day03 {sum} {sum2}");
 }
 
