@@ -80,12 +80,8 @@ fn day_02() {
 }
 
 fn day_03() {
-    let lines: Vec<String> = fs::read_to_string("input/input_03.txt")
-        .unwrap()
-        .lines()
-        .map(|l| l.to_string())
-        .collect();
-    fn compute(line: &str, enabling: bool, old_enabled: bool) -> (u64, bool) {
+    let line: String = fs::read_to_string("input/input_03.txt").unwrap();
+    fn compute(line: &str, enabling: bool) -> u64 {
         enum State {
             S,
             D,
@@ -100,7 +96,7 @@ fn day_03() {
         let mut d1 = 0u64;
         let mut d2 = 0u64;
         let mut sum = 0u64;
-        let mut enabled = old_enabled;
+        let mut enabled = true;
         loop {
             if idx >= line.len() {
                 break;
@@ -180,16 +176,10 @@ fn day_03() {
             }
             idx += 1;
         }
-        (sum, enabled)
+        sum
     }
-    let sum: u64 = lines.iter().map(|l| compute(l, false, true).0).sum();
-    let sum2: u64 = lines
-        .iter()
-        .fold((0u64, true), |(s, e), l| {
-            let (ns, ne) = compute(l, true, e);
-            (s + ns, ne)
-        })
-        .0;
+    let sum = compute(&line, false);
+    let sum2 = compute(&line, true);
     println!("day03 {sum} {sum2}");
 }
 
