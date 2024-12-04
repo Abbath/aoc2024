@@ -215,12 +215,12 @@ fn day_04() {
     let smsm = b"SMSM";
     let check2 = |i: usize, j: usize| -> u64 {
         let check3 = |ms: &[u8; 4]| {
-            (xmass[i - 1][j - 1] as u8 == ms[0]
+            xmass[i - 1][j - 1] as u8 == ms[0]
                 && xmass[i + 1][j + 1] as u8 == ms[1]
                 && xmass[i - 1][j + 1] as u8 == ms[2]
-                && xmass[i + 1][j - 1] as u8 == ms[3]) as u64
+                && xmass[i + 1][j - 1] as u8 == ms[3]
         };
-        check3(msms) + check3(smms) + check3(mssm) + check3(smsm)
+        (check3(msms) || check3(smms) || check3(mssm) || check3(smsm)) as u64
     };
     enum Cmp {
         G,
