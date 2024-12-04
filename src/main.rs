@@ -195,28 +195,32 @@ fn day_04() {
         SE,
     }
     let xmas: Vec<_> = vec!['X', 'M', 'A', 'S'];
-    let check = |i: usize, j: usize, dir: Dir| match dir {
-        Dir::N => (1..4).map(|n| xmass[i - n][j] == xmas[n]).all(|p| p),
-        Dir::S => (1..4).map(|n| xmass[i + n][j] == xmas[n]).all(|p| p),
-        Dir::W => (1..4).map(|n| xmass[i][j - n] == xmas[n]).all(|p| p),
-        Dir::E => (1..4).map(|n| xmass[i][j + n] == xmas[n]).all(|p| p),
-        Dir::NW => (1..4).map(|n| xmass[i - n][j - n] == xmas[n]).all(|p| p),
-        Dir::NE => (1..4).map(|n| xmass[i - n][j + n] == xmas[n]).all(|p| p),
-        Dir::SW => (1..4).map(|n| xmass[i + n][j - n] == xmas[n]).all(|p| p),
-        Dir::SE => (1..4).map(|n| xmass[i + n][j + n] == xmas[n]).all(|p| p),
-    } as u64;
+    let check = |i: usize, j: usize, dir: Dir| {
+        (1..4)
+            .map(|n| match dir {
+                Dir::N => xmass[i - n][j],
+                Dir::S => xmass[i + n][j],
+                Dir::W => xmass[i][j - n],
+                Dir::E => xmass[i][j + n],
+                Dir::NW => xmass[i - n][j - n],
+                Dir::NE => xmass[i - n][j + n],
+                Dir::SW => xmass[i + n][j - n],
+                Dir::SE => xmass[i + n][j + n],
+            } == xmas[n])
+            .all(|p| p) as u64
+    };
+    let msms = b"MSMS";
+    let smms = b"SMMS";
+    let mssm = b"MSSM";
+    let smsm = b"SMSM";
     let check2 = |i: usize, j: usize| -> u64 {
-        let msms = vec!['M', 'S', 'M', 'S'];
-        let smms = vec!['S', 'M', 'M', 'S'];
-        let mssm = vec!['M', 'S', 'S', 'M'];
-        let smsm = vec!['S', 'M', 'S', 'M'];
-        let check3 = |ms: &Vec<char>| {
-            (xmass[i - 1][j - 1] == ms[0]
-                && xmass[i + 1][j + 1] == ms[1]
-                && xmass[i - 1][j + 1] == ms[2]
-                && xmass[i + 1][j - 1] == ms[3]) as u64
+        let check3 = |ms: &[u8; 4]| {
+            (xmass[i - 1][j - 1] as u8 == ms[0]
+                && xmass[i + 1][j + 1] as u8 == ms[1]
+                && xmass[i - 1][j + 1] as u8 == ms[2]
+                && xmass[i + 1][j - 1] as u8 == ms[3]) as u64
         };
-        check3(&msms) + check3(&smms) + check3(&mssm) + check3(&smsm)
+        check3(msms) + check3(smms) + check3(mssm) + check3(smsm)
     };
     enum Cmp {
         G,
