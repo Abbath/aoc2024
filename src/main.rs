@@ -219,48 +219,45 @@ fn day_04() {
         };
         check3(&msms) + check3(&smms) + check3(&mssm) + check3(&smsm)
     };
-    let sum: u64 = (0..xmass.len())
+    enum Cmp {
+        G,
+        L(usize),
+        N,
+    }
+    let cmp = |n: usize, c: Cmp| -> bool {
+        match c {
+            Cmp::G => n >= 3,
+            Cmp::L(m) => n < m - 3,
+            Cmp::N => true,
+        }
+    };
+    let check4 = |i: usize, j: usize, dir: Dir, c: (Cmp, Cmp)| -> u64 {
+        if cmp(i, c.0) && cmp(j, c.1) {
+            check(i, j, dir)
+        } else {
+            0
+        }
+    };
+    let rows = xmass.len();
+    let cols = xmass[0].len();
+    let sum: u64 = (0..rows)
         .map(|i| {
-            (0..xmass[0].len())
+            (0..cols)
                 .map(|j| {
-                    (if i >= 3 { check(i, j, Dir::N) } else { 0 })
-                        + (if i < xmass.len() - 3 {
-                            check(i, j, Dir::S)
-                        } else {
-                            0
-                        })
-                        + (if j >= 3 { check(i, j, Dir::W) } else { 0 })
-                        + (if j < xmass[0].len() - 3 {
-                            check(i, j, Dir::E)
-                        } else {
-                            0
-                        })
-                        + (if i >= 3 && j >= 3 {
-                            check(i, j, Dir::NW)
-                        } else {
-                            0
-                        })
-                        + (if i >= 3 && j < xmass[0].len() - 3 {
-                            check(i, j, Dir::NE)
-                        } else {
-                            0
-                        })
-                        + (if i < xmass.len() - 3 && j >= 3 {
-                            check(i, j, Dir::SW)
-                        } else {
-                            0
-                        })
-                        + (if i < xmass.len() - 3 && j < xmass[0].len() - 3 {
-                            check(i, j, Dir::SE)
-                        } else {
-                            0
-                        })
+                    check4(i, j, Dir::N, (Cmp::G, Cmp::N))
+                        + check4(i, j, Dir::S, (Cmp::L(rows), Cmp::N))
+                        + check4(i, j, Dir::W, (Cmp::N, Cmp::G))
+                        + check4(i, j, Dir::E, (Cmp::N, Cmp::L(cols)))
+                        + check4(i, j, Dir::NW, (Cmp::G, Cmp::G))
+                        + check4(i, j, Dir::NE, (Cmp::G, Cmp::L(cols)))
+                        + check4(i, j, Dir::SW, (Cmp::L(rows), Cmp::G))
+                        + check4(i, j, Dir::SE, (Cmp::L(rows), Cmp::L(cols)))
                 })
                 .sum::<u64>()
         })
         .sum();
-    let sum2: u64 = (1..xmass.len() - 1)
-        .map(|i| (1..xmass[0].len() - 1).map(|j| check2(i, j)).sum::<u64>())
+    let sum2: u64 = (1..rows - 1)
+        .map(|i| (1..cols - 1).map(|j| check2(i, j)).sum::<u64>())
         .sum();
     println!("day04 {sum} {sum2}");
 }
