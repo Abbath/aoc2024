@@ -194,7 +194,7 @@ fn day_04() {
         SW,
         SE,
     }
-    let xmas: Vec<_> = vec!['X', 'M', 'A', 'S'];
+    let xmas = b"XMAS";
     let check = |i: usize, j: usize, dir: Dir| {
         (1..4)
             .map(|n| match dir {
@@ -206,21 +206,21 @@ fn day_04() {
                 Dir::NE => xmass[i - n][j + n],
                 Dir::SW => xmass[i + n][j - n],
                 Dir::SE => xmass[i + n][j + n],
-            } == xmas[n])
+            } as u8 == xmas[n])
             .all(|p| p) as u64
     };
-    let msms = b"MSMS";
-    let smms = b"SMMS";
-    let mssm = b"MSSM";
-    let smsm = b"SMSM";
+    let ms = b"MS";
+    let sm = b"SM";
     let check2 = |i: usize, j: usize| -> u64 {
-        let check3 = |ms: &[u8; 4]| {
-            xmass[i - 1][j - 1] as u8 == ms[0]
-                && xmass[i + 1][j + 1] as u8 == ms[1]
-                && xmass[i - 1][j + 1] as u8 == ms[2]
-                && xmass[i + 1][j - 1] as u8 == ms[3]
-        };
-        (check3(msms) || check3(smms) || check3(mssm) || check3(smsm)) as u64
+        let check31 =
+            |ms: &[u8; 2]| xmass[i - 1][j - 1] as u8 == ms[0] && xmass[i + 1][j + 1] as u8 == ms[1];
+        let check32 =
+            |ms: &[u8; 2]| xmass[i - 1][j + 1] as u8 == ms[0] && xmass[i + 1][j - 1] as u8 == ms[1];
+        if check31(ms) || check31(sm) {
+            (check32(ms) || check32(sm)) as u64
+        } else {
+            0
+        }
     };
     enum Cmp {
         G,
