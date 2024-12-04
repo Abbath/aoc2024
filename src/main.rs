@@ -194,113 +194,74 @@ fn day_04() {
         SW,
         SE,
     }
+    let xmas: Vec<_> = vec!['X', 'M', 'A', 'S'];
     let check = |i: usize, j: usize, dir: Dir| match dir {
-        Dir::N => {
-            xmass[i][j] == 'X'
-                && xmass[i - 1][j] == 'M'
-                && xmass[i - 2][j] == 'A'
-                && xmass[i - 3][j] == 'S'
-        }
-        Dir::S => {
-            xmass[i][j] == 'X'
-                && xmass[i + 1][j] == 'M'
-                && xmass[i + 2][j] == 'A'
-                && xmass[i + 3][j] == 'S'
-        }
-        Dir::W => {
-            xmass[i][j] == 'X'
-                && xmass[i][j - 1] == 'M'
-                && xmass[i][j - 2] == 'A'
-                && xmass[i][j - 3] == 'S'
-        }
-        Dir::E => {
-            xmass[i][j] == 'X'
-                && xmass[i][j + 1] == 'M'
-                && xmass[i][j + 2] == 'A'
-                && xmass[i][j + 3] == 'S'
-        }
-        Dir::NW => {
-            xmass[i][j] == 'X'
-                && xmass[i - 1][j - 1] == 'M'
-                && xmass[i - 2][j - 2] == 'A'
-                && xmass[i - 3][j - 3] == 'S'
-        }
-        Dir::NE => {
-            xmass[i][j] == 'X'
-                && xmass[i - 1][j + 1] == 'M'
-                && xmass[i - 2][j + 2] == 'A'
-                && xmass[i - 3][j + 3] == 'S'
-        }
-        Dir::SW => {
-            xmass[i][j] == 'X'
-                && xmass[i + 1][j - 1] == 'M'
-                && xmass[i + 2][j - 2] == 'A'
-                && xmass[i + 3][j - 3] == 'S'
-        }
-        Dir::SE => {
-            xmass[i][j] == 'X'
-                && xmass[i + 1][j + 1] == 'M'
-                && xmass[i + 2][j + 2] == 'A'
-                && xmass[i + 3][j + 3] == 'S'
-        }
+        Dir::N => (0..4).map(|n| xmass[i - n][j] == xmas[n]).all(|p| p),
+        Dir::S => (0..4).map(|n| xmass[i + n][j] == xmas[n]).all(|p| p),
+        Dir::W => (0..4).map(|n| xmass[i][j - n] == xmas[n]).all(|p| p),
+        Dir::E => (0..4).map(|n| xmass[i][j + n] == xmas[n]).all(|p| p),
+        Dir::NW => (0..4).map(|n| xmass[i - n][j - n] == xmas[n]).all(|p| p),
+        Dir::NE => (0..4).map(|n| xmass[i - n][j + n] == xmas[n]).all(|p| p),
+        Dir::SW => (0..4).map(|n| xmass[i + n][j - n] == xmas[n]).all(|p| p),
+        Dir::SE => (0..4).map(|n| xmass[i + n][j + n] == xmas[n]).all(|p| p),
     } as u64;
     let check2 = |i: usize, j: usize| -> u64 {
-        (xmass[i][j] == 'A'
-            && xmass[i - 1][j - 1] == 'M'
-            && xmass[i + 1][j + 1] == 'S'
-            && xmass[i - 1][j + 1] == 'M'
-            && xmass[i + 1][j - 1] == 'S') as u64
-            + (xmass[i][j] == 'A'
-                && xmass[i - 1][j - 1] == 'S'
-                && xmass[i + 1][j + 1] == 'M'
-                && xmass[i - 1][j + 1] == 'M'
-                && xmass[i + 1][j - 1] == 'S') as u64
-            + (xmass[i][j] == 'A'
-                && xmass[i - 1][j - 1] == 'M'
-                && xmass[i + 1][j + 1] == 'S'
-                && xmass[i - 1][j + 1] == 'S'
-                && xmass[i + 1][j - 1] == 'M') as u64
-            + (xmass[i][j] == 'A'
-                && xmass[i - 1][j - 1] == 'S'
-                && xmass[i + 1][j + 1] == 'M'
-                && xmass[i - 1][j + 1] == 'S'
-                && xmass[i + 1][j - 1] == 'M') as u64
+        let msms = vec!['M', 'S', 'M', 'S'];
+        let smms = vec!['S', 'M', 'M', 'S'];
+        let mssm = vec!['M', 'S', 'S', 'M'];
+        let smsm = vec!['S', 'M', 'S', 'M'];
+        let check3 = |ms: &Vec<char>| {
+            (xmass[i][j] == 'A'
+                && xmass[i - 1][j - 1] == ms[0]
+                && xmass[i + 1][j + 1] == ms[1]
+                && xmass[i - 1][j + 1] == ms[2]
+                && xmass[i + 1][j - 1] == ms[3]) as u64
+        };
+        check3(&msms) + check3(&smms) + check3(&mssm) + check3(&smsm)
     };
-    let mut sum = 0u64;
-    for i in 0..xmass.len() {
-        for j in 0..xmass[0].len() {
-            if i >= 3 {
-                sum += check(i, j, Dir::N);
-            }
-            if i < xmass.len() - 3 {
-                sum += check(i, j, Dir::S);
-            }
-            if j >= 3 {
-                sum += check(i, j, Dir::W);
-            }
-            if j < xmass[0].len() - 3 {
-                sum += check(i, j, Dir::E);
-            }
-            if i >= 3 && j >= 3 {
-                sum += check(i, j, Dir::NW);
-            }
-            if i >= 3 && j < xmass[0].len() - 3 {
-                sum += check(i, j, Dir::NE);
-            }
-            if i < xmass.len() - 3 && j >= 3 {
-                sum += check(i, j, Dir::SW);
-            }
-            if i < xmass.len() - 3 && j < xmass[0].len() - 3 {
-                sum += check(i, j, Dir::SE);
-            }
-        }
-    }
-    let mut sum2 = 0u64;
-    for i in 1..xmass.len() - 1 {
-        for j in 1..xmass[0].len() - 1 {
-            sum2 += check2(i, j);
-        }
-    }
+    let sum: u64 = (0..xmass.len())
+        .map(|i| {
+            (0..xmass[0].len())
+                .map(|j| {
+                    (if i >= 3 { check(i, j, Dir::N) } else { 0 })
+                        + (if i < xmass.len() - 3 {
+                            check(i, j, Dir::S)
+                        } else {
+                            0
+                        })
+                        + (if j >= 3 { check(i, j, Dir::W) } else { 0 })
+                        + (if j < xmass[0].len() - 3 {
+                            check(i, j, Dir::E)
+                        } else {
+                            0
+                        })
+                        + (if i >= 3 && j >= 3 {
+                            check(i, j, Dir::NW)
+                        } else {
+                            0
+                        })
+                        + (if i >= 3 && j < xmass[0].len() - 3 {
+                            check(i, j, Dir::NE)
+                        } else {
+                            0
+                        })
+                        + (if i < xmass.len() - 3 && j >= 3 {
+                            check(i, j, Dir::SW)
+                        } else {
+                            0
+                        })
+                        + (if i < xmass.len() - 3 && j < xmass[0].len() - 3 {
+                            check(i, j, Dir::SE)
+                        } else {
+                            0
+                        })
+                })
+                .sum::<u64>()
+        })
+        .sum();
+    let sum2: u64 = (1..xmass.len() - 1)
+        .map(|i| (1..xmass[0].len() - 1).map(|j| check2(i, j)).sum::<u64>())
+        .sum();
     println!("day04 {sum} {sum2}");
 }
 
