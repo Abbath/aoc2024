@@ -196,14 +196,14 @@ fn day_04() {
     }
     let xmas: Vec<_> = vec!['X', 'M', 'A', 'S'];
     let check = |i: usize, j: usize, dir: Dir| match dir {
-        Dir::N => (0..4).map(|n| xmass[i - n][j] == xmas[n]).all(|p| p),
-        Dir::S => (0..4).map(|n| xmass[i + n][j] == xmas[n]).all(|p| p),
-        Dir::W => (0..4).map(|n| xmass[i][j - n] == xmas[n]).all(|p| p),
-        Dir::E => (0..4).map(|n| xmass[i][j + n] == xmas[n]).all(|p| p),
-        Dir::NW => (0..4).map(|n| xmass[i - n][j - n] == xmas[n]).all(|p| p),
-        Dir::NE => (0..4).map(|n| xmass[i - n][j + n] == xmas[n]).all(|p| p),
-        Dir::SW => (0..4).map(|n| xmass[i + n][j - n] == xmas[n]).all(|p| p),
-        Dir::SE => (0..4).map(|n| xmass[i + n][j + n] == xmas[n]).all(|p| p),
+        Dir::N => (1..4).map(|n| xmass[i - n][j] == xmas[n]).all(|p| p),
+        Dir::S => (1..4).map(|n| xmass[i + n][j] == xmas[n]).all(|p| p),
+        Dir::W => (1..4).map(|n| xmass[i][j - n] == xmas[n]).all(|p| p),
+        Dir::E => (1..4).map(|n| xmass[i][j + n] == xmas[n]).all(|p| p),
+        Dir::NW => (1..4).map(|n| xmass[i - n][j - n] == xmas[n]).all(|p| p),
+        Dir::NE => (1..4).map(|n| xmass[i - n][j + n] == xmas[n]).all(|p| p),
+        Dir::SW => (1..4).map(|n| xmass[i + n][j - n] == xmas[n]).all(|p| p),
+        Dir::SE => (1..4).map(|n| xmass[i + n][j + n] == xmas[n]).all(|p| p),
     } as u64;
     let check2 = |i: usize, j: usize| -> u64 {
         let msms = vec!['M', 'S', 'M', 'S'];
@@ -211,8 +211,7 @@ fn day_04() {
         let mssm = vec!['M', 'S', 'S', 'M'];
         let smsm = vec!['S', 'M', 'S', 'M'];
         let check3 = |ms: &Vec<char>| {
-            (xmass[i][j] == 'A'
-                && xmass[i - 1][j - 1] == ms[0]
+            (xmass[i - 1][j - 1] == ms[0]
                 && xmass[i + 1][j + 1] == ms[1]
                 && xmass[i - 1][j + 1] == ms[2]
                 && xmass[i + 1][j - 1] == ms[3]) as u64
@@ -244,20 +243,28 @@ fn day_04() {
         .map(|i| {
             (0..cols)
                 .map(|j| {
-                    check4(i, j, Dir::N, (Cmp::G, Cmp::N))
-                        + check4(i, j, Dir::S, (Cmp::L(rows), Cmp::N))
-                        + check4(i, j, Dir::W, (Cmp::N, Cmp::G))
-                        + check4(i, j, Dir::E, (Cmp::N, Cmp::L(cols)))
-                        + check4(i, j, Dir::NW, (Cmp::G, Cmp::G))
-                        + check4(i, j, Dir::NE, (Cmp::G, Cmp::L(cols)))
-                        + check4(i, j, Dir::SW, (Cmp::L(rows), Cmp::G))
-                        + check4(i, j, Dir::SE, (Cmp::L(rows), Cmp::L(cols)))
+                    if xmass[i][j] == 'X' {
+                        check4(i, j, Dir::N, (Cmp::G, Cmp::N))
+                            + check4(i, j, Dir::S, (Cmp::L(rows), Cmp::N))
+                            + check4(i, j, Dir::W, (Cmp::N, Cmp::G))
+                            + check4(i, j, Dir::E, (Cmp::N, Cmp::L(cols)))
+                            + check4(i, j, Dir::NW, (Cmp::G, Cmp::G))
+                            + check4(i, j, Dir::NE, (Cmp::G, Cmp::L(cols)))
+                            + check4(i, j, Dir::SW, (Cmp::L(rows), Cmp::G))
+                            + check4(i, j, Dir::SE, (Cmp::L(rows), Cmp::L(cols)))
+                    } else {
+                        0
+                    }
                 })
                 .sum::<u64>()
         })
         .sum();
     let sum2: u64 = (1..rows - 1)
-        .map(|i| (1..cols - 1).map(|j| check2(i, j)).sum::<u64>())
+        .map(|i| {
+            (1..cols - 1)
+                .map(|j| if xmass[i][j] == 'A' { check2(i, j) } else { 0 })
+                .sum::<u64>()
+        })
         .sum();
     println!("day04 {sum} {sum2}");
 }
