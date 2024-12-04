@@ -178,8 +178,135 @@ fn day_03() {
     println!("day03 {sum} {sum2}");
 }
 
+fn day_04() {
+    let xmass: Vec<Vec<char>> = fs::read_to_string("input/input_04.txt")
+        .unwrap()
+        .lines()
+        .map(|l| l.chars().collect())
+        .collect();
+    enum Dir {
+        N,
+        S,
+        W,
+        E,
+        NW,
+        NE,
+        SW,
+        SE,
+    }
+    let check = |i: usize, j: usize, dir: Dir| match dir {
+        Dir::N => {
+            xmass[i][j] == 'X'
+                && xmass[i - 1][j] == 'M'
+                && xmass[i - 2][j] == 'A'
+                && xmass[i - 3][j] == 'S'
+        }
+        Dir::S => {
+            xmass[i][j] == 'X'
+                && xmass[i + 1][j] == 'M'
+                && xmass[i + 2][j] == 'A'
+                && xmass[i + 3][j] == 'S'
+        }
+        Dir::W => {
+            xmass[i][j] == 'X'
+                && xmass[i][j - 1] == 'M'
+                && xmass[i][j - 2] == 'A'
+                && xmass[i][j - 3] == 'S'
+        }
+        Dir::E => {
+            xmass[i][j] == 'X'
+                && xmass[i][j + 1] == 'M'
+                && xmass[i][j + 2] == 'A'
+                && xmass[i][j + 3] == 'S'
+        }
+        Dir::NW => {
+            xmass[i][j] == 'X'
+                && xmass[i - 1][j - 1] == 'M'
+                && xmass[i - 2][j - 2] == 'A'
+                && xmass[i - 3][j - 3] == 'S'
+        }
+        Dir::NE => {
+            xmass[i][j] == 'X'
+                && xmass[i - 1][j + 1] == 'M'
+                && xmass[i - 2][j + 2] == 'A'
+                && xmass[i - 3][j + 3] == 'S'
+        }
+        Dir::SW => {
+            xmass[i][j] == 'X'
+                && xmass[i + 1][j - 1] == 'M'
+                && xmass[i + 2][j - 2] == 'A'
+                && xmass[i + 3][j - 3] == 'S'
+        }
+        Dir::SE => {
+            xmass[i][j] == 'X'
+                && xmass[i + 1][j + 1] == 'M'
+                && xmass[i + 2][j + 2] == 'A'
+                && xmass[i + 3][j + 3] == 'S'
+        }
+    } as u64;
+    let check2 = |i: usize, j: usize| -> u64 {
+        (xmass[i][j] == 'A'
+            && xmass[i - 1][j - 1] == 'M'
+            && xmass[i + 1][j + 1] == 'S'
+            && xmass[i - 1][j + 1] == 'M'
+            && xmass[i + 1][j - 1] == 'S') as u64
+            + (xmass[i][j] == 'A'
+                && xmass[i - 1][j - 1] == 'S'
+                && xmass[i + 1][j + 1] == 'M'
+                && xmass[i - 1][j + 1] == 'M'
+                && xmass[i + 1][j - 1] == 'S') as u64
+            + (xmass[i][j] == 'A'
+                && xmass[i - 1][j - 1] == 'M'
+                && xmass[i + 1][j + 1] == 'S'
+                && xmass[i - 1][j + 1] == 'S'
+                && xmass[i + 1][j - 1] == 'M') as u64
+            + (xmass[i][j] == 'A'
+                && xmass[i - 1][j - 1] == 'S'
+                && xmass[i + 1][j + 1] == 'M'
+                && xmass[i - 1][j + 1] == 'S'
+                && xmass[i + 1][j - 1] == 'M') as u64
+    };
+    let mut sum = 0u64;
+    for i in 0..xmass.len() {
+        for j in 0..xmass[0].len() {
+            if i >= 3 {
+                sum += check(i, j, Dir::N);
+            }
+            if i < xmass.len() - 3 {
+                sum += check(i, j, Dir::S);
+            }
+            if j >= 3 {
+                sum += check(i, j, Dir::W);
+            }
+            if j < xmass[0].len() - 3 {
+                sum += check(i, j, Dir::E);
+            }
+            if i >= 3 && j >= 3 {
+                sum += check(i, j, Dir::NW);
+            }
+            if i >= 3 && j < xmass[0].len() - 3 {
+                sum += check(i, j, Dir::NE);
+            }
+            if i < xmass.len() - 3 && j >= 3 {
+                sum += check(i, j, Dir::SW);
+            }
+            if i < xmass.len() - 3 && j < xmass[0].len() - 3 {
+                sum += check(i, j, Dir::SE);
+            }
+        }
+    }
+    let mut sum2 = 0u64;
+    for i in 1..xmass.len() - 1 {
+        for j in 1..xmass[0].len() - 1 {
+            sum2 += check2(i, j);
+        }
+    }
+    println!("day04 {sum} {sum2}");
+}
+
 fn main() {
     day_01();
     day_02();
     day_03();
+    day_04();
 }
