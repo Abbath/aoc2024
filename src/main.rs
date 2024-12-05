@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
 use std::fs;
 
@@ -301,24 +302,18 @@ fn day_05() {
     let (sum, sum2): (u64, u64) = updates
         .iter()
         .map(|u| {
-            if u.iter()
-                .enumerate()
-                .map(|(i, &n)| {
-                    (i + 1..u.len())
-                        .map(|m| !rules.contains(&(u[m], n)))
-                        .all(|p| p)
-                })
-                .all(|p| p)
-            {
+            if u.is_sorted_by(|&a, &b| rules.contains(&(a, b))) {
                 (u[u.len() / 2], 0)
             } else {
                 let mut mu = u.clone();
-                (0..u.len()).for_each(|i| {
-                    (i + 1..u.len()).for_each(|j| {
-                        if rules.contains(&(mu[j], mu[i])) {
-                            mu.swap(i, j);
-                        }
-                    })
+                mu.sort_by(|&a, &b| {
+                    if rules.contains(&(a, b)) {
+                        Ordering::Less
+                    } else if rules.contains(&(b, a)) {
+                        Ordering::Greater
+                    } else {
+                        Ordering::Equal
+                    }
                 });
                 (0, mu[u.len() / 2])
             }
