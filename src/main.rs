@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fs;
 
 fn day_01() {
@@ -273,9 +273,75 @@ fn day_04() {
     println!("day04 {sum} {sum2}");
 }
 
+fn day_05() {
+    let lines: Vec<String> = fs::read_to_string("input/input_05.txt")
+        .unwrap()
+        .lines()
+        .map(|s| s.to_string())
+        .collect();
+    let (rules, updates): (Vec<_>, Vec<_>) = lines.iter().partition(|s| s.contains("|"));
+    let rules: HashSet<_> = rules
+        .iter()
+        .map(|s| {
+            let t = s
+                .split("|")
+                .map(|s| s.parse::<u64>().unwrap())
+                .collect::<Vec<_>>();
+            (t[0], t[1])
+        })
+        .collect();
+    let updates: Vec<_> = updates
+        .iter()
+        .skip(1)
+        .map(|s| {
+            s.split(",")
+                .map(|s| s.parse::<u64>().unwrap())
+                .collect::<Vec<_>>()
+        })
+        .collect();
+    let mut wrong_updates: Vec<_> = Vec::new();
+    let sum: u64 = updates
+        .iter()
+        .map(|u| {
+            let c = u
+                .iter()
+                .enumerate()
+                .map(|(i, &n)| {
+                    (0..i).map(|m| !rules.contains(&(n, u[m]))).all(|p| p)
+                        && (i + 1..u.len())
+                            .map(|m| !rules.contains(&(u[m], n)))
+                            .all(|p| p)
+                })
+                .all(|p| p);
+            if c {
+                u[u.len() / 2]
+            } else {
+                wrong_updates.push(u);
+                0
+            }
+        })
+        .sum();
+    let sum2: u64 = wrong_updates
+        .iter()
+        .map(|&u| {
+            let mut mu = u.clone();
+            for i in 0..u.len() {
+                for j in i..u.len() {
+                    if rules.contains(&(mu[j], mu[i])) {
+                        mu.swap(i, j);
+                    }
+                }
+            }
+            mu[mu.len() / 2]
+        })
+        .sum();
+    println!("day05 {sum} {sum2}");
+}
+
 fn main() {
     day_01();
     day_02();
     day_03();
     day_04();
+    day_05();
 }
