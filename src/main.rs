@@ -274,12 +274,11 @@ fn day_04() {
 }
 
 fn day_05() {
-    let lines: Vec<String> = fs::read_to_string("input/input_05.txt")
+    let (rules, updates): (Vec<_>, Vec<_>) = fs::read_to_string("input/input_05.txt")
         .unwrap()
         .lines()
         .map(|s| s.to_string())
-        .collect();
-    let (rules, updates): (Vec<_>, Vec<_>) = lines.iter().partition(|s| s.contains("|"));
+        .partition(|s| s.contains("|"));
     let rules: HashSet<_> = rules
         .iter()
         .map(|s| {
@@ -299,40 +298,32 @@ fn day_05() {
                 .collect::<Vec<_>>()
         })
         .collect();
-    let mut wrong_updates: Vec<_> = Vec::new();
-    let sum: u64 = updates
+    let (sum, sum2): (u64, u64) = updates
         .iter()
         .map(|u| {
-            let c = u
-                .iter()
+            if u.iter()
                 .enumerate()
                 .map(|(i, &n)| {
                     (i + 1..u.len())
                         .map(|m| !rules.contains(&(u[m], n)))
                         .all(|p| p)
                 })
-                .all(|p| p);
-            if c {
-                u[u.len() / 2]
+                .all(|p| p)
+            {
+                (u[u.len() / 2], 0)
             } else {
-                wrong_updates.push(u.clone());
-                0
+                let mut mu = u.clone();
+                (0..u.len()).for_each(|i| {
+                    (i..u.len()).for_each(|j| {
+                        if rules.contains(&(mu[j], mu[i])) {
+                            mu.swap(i, j);
+                        }
+                    })
+                });
+                (0, mu[u.len() / 2])
             }
         })
-        .sum();
-    let sum2: u64 = wrong_updates
-        .iter_mut()
-        .map(|u| {
-            (0..u.len()).for_each(|i| {
-                (i..u.len()).for_each(|j| {
-                    if rules.contains(&(u[j], u[i])) {
-                        u.swap(i, j);
-                    }
-                })
-            });
-            u[u.len() / 2]
-        })
-        .sum();
+        .fold((0, 0), |(s, s2), (n, n2)| (s + n, s2 + n2));
     println!("day05 {sum} {sum2}");
 }
 
