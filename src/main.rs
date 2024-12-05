@@ -315,23 +315,22 @@ fn day_05() {
             if c {
                 u[u.len() / 2]
             } else {
-                wrong_updates.push(u);
+                wrong_updates.push(u.clone());
                 0
             }
         })
         .sum();
     let sum2: u64 = wrong_updates
-        .iter()
-        .map(|&u| {
-            let mut mu = u.clone();
-            for i in 0..u.len() {
-                for j in i..u.len() {
-                    if rules.contains(&(mu[j], mu[i])) {
-                        mu.swap(i, j);
+        .iter_mut()
+        .map(|u| {
+            (0..u.len()).for_each(|i| {
+                (i..u.len()).for_each(|j| {
+                    if rules.contains(&(u[j], u[i])) {
+                        u.swap(i, j);
                     }
-                }
-            }
-            mu[mu.len() / 2]
+                })
+            });
+            u[u.len() / 2]
         })
         .sum();
     println!("day05 {sum} {sum2}");
