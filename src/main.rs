@@ -314,7 +314,7 @@ fn day_05() {
             } else {
                 let mut mu = u.clone();
                 (0..u.len()).for_each(|i| {
-                    (i..u.len()).for_each(|j| {
+                    (i + 1..u.len()).for_each(|j| {
                         if rules.contains(&(mu[j], mu[i])) {
                             mu.swap(i, j);
                         }
