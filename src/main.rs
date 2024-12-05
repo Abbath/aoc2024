@@ -307,10 +307,9 @@ fn day_05() {
                 .iter()
                 .enumerate()
                 .map(|(i, &n)| {
-                    (0..i).map(|m| !rules.contains(&(n, u[m]))).all(|p| p)
-                        && (i + 1..u.len())
-                            .map(|m| !rules.contains(&(u[m], n)))
-                            .all(|p| p)
+                    (i + 1..u.len())
+                        .map(|m| !rules.contains(&(u[m], n)))
+                        .all(|p| p)
                 })
                 .all(|p| p);
             if c {
