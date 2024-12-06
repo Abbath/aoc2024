@@ -378,15 +378,16 @@ fn day_06() {
         let mut j = crd.1 as i64;
         loop {
             let (ni, nj) = step((i, j), dir);
-            let oidx = i as usize * w + j as usize;
-            let nidx = ni as usize * w + nj as usize;
             if ni < 0 || ni >= h as i64 || nj < 0 || nj >= w as i64 {
                 return (false, corners);
             }
-            if field[nidx] == dir {
+            let nidx = ni as usize * w + nj as usize;
+            if field[nidx] == '.' {
+                (i, j) = (ni, nj);
+            } else if field[nidx] == dir {
                 return (true, corners);
-            }
-            if field[nidx] == '#' {
+            } else if field[nidx] == '#' {
+                let oidx = i as usize * w + j as usize;
                 if field[oidx] == '.' {
                     field[oidx] = dir;
                     corners.push((i as usize, j as usize));
