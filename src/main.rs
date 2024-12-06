@@ -328,102 +328,100 @@ fn day_06() {
         .lines()
         .map(|l| l.chars().collect())
         .collect();
-    let crd = field
-        .iter()
-        .enumerate()
-        .filter_map(|(i, v)| {
-            if let Some(n) = v.iter().position(|&c| c == '^') {
-                Some((i, n))
-            } else {
-                None
-            }
-        })
-        .nth(0)
-        .unwrap();
-    #[derive(Clone, Copy, PartialEq, Eq, Hash)]
-    enum Dir {
-        N,
-        S,
-        E,
-        W,
-    }
-    let turn = |d: Dir| -> Dir {
+    let h = field.len();
+    let w = field[0].len();
+    let field: Vec<char> = field.into_iter().flatten().collect();
+    let pos = field.iter().position(|&c| c == '^').unwrap();
+    let crd = (pos / w as usize, pos % w as usize);
+    let turn = |d: char| -> char {
         match d {
-            Dir::N => Dir::E,
-            Dir::E => Dir::S,
-            Dir::S => Dir::W,
-            Dir::W => Dir::N,
+            '^' => '>',
+            '>' => 'v',
+            'v' => '<',
+            '<' => '^',
+            _ => panic!("Wrong direction"),
         }
     };
-    let step = |(i, j): (i64, i64), d: Dir| -> (i64, i64) {
+    let step = |(i, j): (i64, i64), d: char| -> (i64, i64) {
         match d {
-            Dir::N => (i - 1, j),
-            Dir::S => (i + 1, j),
-            Dir::E => (i, j + 1),
-            Dir::W => (i, j - 1),
+            '^' => (i - 1, j),
+            'v' => (i + 1, j),
+            '>' => (i, j + 1),
+            '<' => (i, j - 1),
+            _ => panic!("Wrong direction"),
         }
     };
-    enum Res {
-        Looped,
-        NotLooped(HashSet<(usize, usize, Dir)>),
-    }
-    #[derive(PartialEq)]
-    enum Typ {
-        Loopy,
-        NotLoopy,
-    }
-    let solve = |crd: (usize, usize), field: &Vec<Vec<char>>, typ: Typ| -> Res {
+    let solve = |crd: (usize, usize), field: &Vec<char>| -> HashSet<(usize, usize, char)> {
         let mut visited: HashSet<_> = HashSet::new();
-        let mut dir = Dir::N;
+        let mut dir = '^';
         visited.insert((crd.0, crd.1, dir));
-        let h = field.len() as i64;
-        let w = field[0].len() as i64;
         let mut i = crd.0 as i64;
         let mut j = crd.1 as i64;
         loop {
             let (ni, nj) = step((i, j), dir);
-            if ni < 0 || ni >= h || nj < 0 || nj >= w {
-                return Res::NotLooped(visited);
+            let nidx = ni as usize * w + nj as usize;
+            if ni < 0 || ni >= h as i64 || nj < 0 || nj >= w as i64 {
+                return visited;
             }
-            if visited.contains(&(ni as usize, nj as usize, dir)) {
-                return Res::Looped;
-            }
-            if field[ni as usize][nj as usize] == '#' {
-                if typ == Typ::Loopy {
-                    visited.insert((ni as usize, nj as usize, dir));
-                }
+            if field[nidx] == '#' {
                 dir = turn(dir);
             } else {
-                if typ == Typ::NotLoopy {
-                    visited.insert((ni as usize, nj as usize, dir));
-                }
+                visited.insert((ni as usize, nj as usize, dir));
                 (i, j) = (ni, nj);
             }
         }
     };
-
-    if let Res::NotLooped(v) = solve(crd, &field, Typ::NotLoopy) {
-        let hs: HashSet<_> = HashSet::from_iter(v.iter().map(|(i, j, _)| (i, j)));
-        let mut field2 = field.clone();
-        let sum: u64 = hs
-            .iter()
-            .map(|&(&i, &j)| {
-                if (i, j) == crd {
-                    0
-                } else {
-                    field2[i][j] = '#';
-                    if let Res::Looped = solve(crd, &field2, Typ::Loopy) {
-                        field2[i][j] = '.';
-                        1
-                    } else {
-                        field2[i][j] = '.';
-                        0
-                    }
+    let solve2 = |crd: (usize, usize), field: &mut Vec<char>| -> (bool, Vec<(usize, usize)>) {
+        let mut corners: Vec<_> = Vec::new();
+        let mut dir = '^';
+        let mut i = crd.0 as i64;
+        let mut j = crd.1 as i64;
+        loop {
+            let (ni, nj) = step((i, j), dir);
+            let oidx = i as usize * w + j as usize;
+            let nidx = ni as usize * w + nj as usize;
+            if ni < 0 || ni >= h as i64 || nj < 0 || nj >= w as i64 {
+                return (false, corners);
+            }
+            if field[nidx] == dir {
+                return (true, corners);
+            }
+            if field[nidx] == '#' {
+                if field[oidx] == '.' {
+                    field[oidx] = dir;
+                    corners.push((i as usize, j as usize));
                 }
-            })
-            .sum();
-        println!("day06 {} {sum}", hs.len());
-    }
+                dir = turn(dir);
+            } else {
+                (i, j) = (ni, nj);
+            }
+        }
+    };
+    let v = solve(crd, &field);
+    let hs: HashSet<_> =
+        HashSet::from_iter(v.iter().filter_map(
+            |(i, j, _)| {
+                if (*i, *j) != crd {
+                    Some((i, j))
+                } else {
+                    None
+                }
+            },
+        ));
+    let mut field2 = field.clone();
+    let sum: u64 = hs
+        .iter()
+        .map(|&(&i, &j)| {
+            field2[i * w + j] = '#';
+            let (looped, v) = solve2(crd, &mut field2);
+            v.iter().for_each(|(i, j)| {
+                field2[i * w + j] = '.';
+            });
+            field2[i * w + j] = '.';
+            return looped as u64;
+        })
+        .sum();
+    println!("day06 {} {}", hs.len() + 1, sum);
 }
 
 fn main() {
