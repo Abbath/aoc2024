@@ -322,10 +322,102 @@ fn day_05() {
     println!("day05 {sum} {sum2}");
 }
 
+fn day_06() {
+    let field: Vec<Vec<char>> = fs::read_to_string("input/input_06.txt")
+        .unwrap()
+        .lines()
+        .map(|l| l.chars().collect())
+        .collect();
+    let crd = field
+        .iter()
+        .enumerate()
+        .filter_map(|(i, v)| {
+            if let Some(n) = v.iter().position(|&c| c == '^') {
+                Some((i, n))
+            } else {
+                None
+            }
+        })
+        .nth(0)
+        .unwrap();
+    #[derive(Clone, Copy, PartialEq, Eq, Hash)]
+    enum Dir {
+        N,
+        S,
+        E,
+        W,
+    }
+    let turn = |d: Dir| -> Dir {
+        match d {
+            Dir::N => Dir::E,
+            Dir::E => Dir::S,
+            Dir::S => Dir::W,
+            Dir::W => Dir::N,
+        }
+    };
+    let step = |(i, j): (i64, i64), d: Dir| -> (i64, i64) {
+        match d {
+            Dir::N => (i - 1, j),
+            Dir::S => (i + 1, j),
+            Dir::E => (i, j + 1),
+            Dir::W => (i, j - 1),
+        }
+    };
+    enum Res {
+        Looped,
+        NotLooped(HashSet<(usize, usize, Dir)>),
+    }
+    let solve = |crd: (usize, usize), field: &Vec<Vec<char>>| -> Res {
+        let mut visited: HashSet<_> = HashSet::new();
+        let mut dir = Dir::N;
+        visited.insert((crd.0, crd.1, dir));
+        let h = field.len() as i64;
+        let w = field[0].len() as i64;
+        let mut i = crd.0 as i64;
+        let mut j = crd.1 as i64;
+        loop {
+            let (ni, nj) = step((i, j), dir);
+            if ni < 0 || ni >= h || nj < 0 || nj >= w {
+                return Res::NotLooped(visited);
+            }
+            if visited.contains(&(ni as usize, nj as usize, dir)) {
+                return Res::Looped;
+            }
+            if field[ni as usize][nj as usize] == '#' {
+                dir = turn(dir);
+            } else {
+                visited.insert((ni as usize, nj as usize, dir));
+                (i, j) = (ni, nj);
+            }
+        }
+    };
+    if let Res::NotLooped(v) = solve(crd, &field) {
+        let hs: HashSet<_> = HashSet::from_iter(v.iter().map(|(i, j, _)| (i, j)));
+        let sum: u64 = hs
+            .iter()
+            .map(|&(&i, &j)| {
+                if (i, j) == crd {
+                    0
+                } else {
+                    let mut field2 = field.clone();
+                    field2[i][j] = '#';
+                    if let Res::Looped = solve(crd, &field2) {
+                        1
+                    } else {
+                        0
+                    }
+                }
+            })
+            .sum();
+        println!("day06 {} {sum}", hs.len());
+    }
+}
+
 fn main() {
     day_01();
     day_02();
     day_03();
     day_04();
     day_05();
+    day_06();
 }
