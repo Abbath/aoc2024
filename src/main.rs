@@ -367,7 +367,12 @@ fn day_06() {
         Looped,
         NotLooped(HashSet<(usize, usize, Dir)>),
     }
-    let solve = |crd: (usize, usize), field: &Vec<Vec<char>>| -> Res {
+    #[derive(PartialEq)]
+    enum Typ {
+        Loopy,
+        NotLoopy,
+    }
+    let solve = |crd: (usize, usize), field: &Vec<Vec<char>>, typ: Typ| -> Res {
         let mut visited: HashSet<_> = HashSet::new();
         let mut dir = Dir::N;
         visited.insert((crd.0, crd.1, dir));
@@ -384,26 +389,34 @@ fn day_06() {
                 return Res::Looped;
             }
             if field[ni as usize][nj as usize] == '#' {
+                if typ == Typ::Loopy {
+                    visited.insert((ni as usize, nj as usize, dir));
+                }
                 dir = turn(dir);
             } else {
-                visited.insert((ni as usize, nj as usize, dir));
+                if typ == Typ::NotLoopy {
+                    visited.insert((ni as usize, nj as usize, dir));
+                }
                 (i, j) = (ni, nj);
             }
         }
     };
-    if let Res::NotLooped(v) = solve(crd, &field) {
+
+    if let Res::NotLooped(v) = solve(crd, &field, Typ::NotLoopy) {
         let hs: HashSet<_> = HashSet::from_iter(v.iter().map(|(i, j, _)| (i, j)));
+        let mut field2 = field.clone();
         let sum: u64 = hs
             .iter()
             .map(|&(&i, &j)| {
                 if (i, j) == crd {
                     0
                 } else {
-                    let mut field2 = field.clone();
                     field2[i][j] = '#';
-                    if let Res::Looped = solve(crd, &field2) {
+                    if let Res::Looped = solve(crd, &field2, Typ::Loopy) {
+                        field2[i][j] = '.';
                         1
                     } else {
+                        field2[i][j] = '.';
                         0
                     }
                 }
