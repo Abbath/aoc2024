@@ -426,7 +426,34 @@ fn day_06() {
 }
 
 fn day_07() {
-    let nums: Vec<(u64, Vec<u64>)> = fs::read_to_string("input/input_07.txt")
+    fn solve(c: bool, n: u64, v: &Vec<u64>, acc: u64, i: usize) -> u64 {
+        if i == v.len() {
+            if acc == n {
+                return n;
+            } else {
+                return 0;
+            }
+        }
+        if acc > n {
+            return 0;
+        }
+        if n == solve(c, n, v, acc + v[i], i + 1)
+            || n == solve(c, n, v, acc * v[i], i + 1)
+            || (c
+                && n == solve(
+                    c,
+                    n,
+                    v,
+                    acc * (10u64.pow(v[i].ilog10() as u32 + 1)) + v[i],
+                    i + 1,
+                ))
+        {
+            n
+        } else {
+            0
+        }
+    }
+    let (sum, sum2): (u64, u64) = fs::read_to_string("input/input_07.txt")
         .unwrap()
         .lines()
         .map(|l| {
@@ -442,61 +469,8 @@ fn day_07() {
                 .collect();
             (v[0], v[1..].to_owned())
         })
-        .collect();
-    let sum: u64 = nums
-        .iter()
-        .map(|(n, v)| {
-            'outer: for m in 0..2u64.pow(v.len() as u32 - 1) {
-                let mut res = v[0];
-                for i in 1..v.len() {
-                    if (m >> (i - 1)) & 1 == 1 {
-                        res *= v[i];
-                    } else {
-                        res += v[i];
-                    }
-                    if res > *n {
-                        continue 'outer;
-                    }
-                }
-                if res == *n {
-                    return *n;
-                }
-            }
-            0
-        })
-        .sum();
-    fn solve(n: u64, v: &Vec<u64>, acc: u64, i: usize) -> u64 {
-        if i == v.len() {
-            if acc == n {
-                return n;
-            } else {
-                return 0;
-            }
-        }
-        if acc > n {
-            return 0;
-        }
-        let a = solve(n, v, acc + v[i], i + 1);
-        if a == n {
-            return n;
-        }
-        let b = solve(n, v, acc * v[i], i + 1);
-        if b == n {
-            return n;
-        }
-        let c = solve(
-            n,
-            v,
-            acc * (10u64.pow(v[i].ilog10() as u32 + 1)) + v[i],
-            i + 1,
-        );
-        if c == n {
-            n
-        } else {
-            0
-        }
-    }
-    let sum2: u64 = nums.iter().map(|(n, v)| solve(*n, v, v[0], 1)).sum();
+        .map(|(n, v)| (solve(false, n, &v, v[0], 1), solve(true, n, &v, v[0], 1)))
+        .fold((0, 0), |(s, s2), (r, r2)| (s + r, s2 + r2));
     println!("day07 {sum} {sum2}");
 }
 
