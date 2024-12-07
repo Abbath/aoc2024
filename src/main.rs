@@ -425,6 +425,81 @@ fn day_06() {
     println!("day06 {} {}", hs.len() + 1, sum);
 }
 
+fn day_07() {
+    let nums: Vec<(u64, Vec<u64>)> = fs::read_to_string("input/input_07.txt")
+        .unwrap()
+        .lines()
+        .map(|l| {
+            let v: Vec<_> = l
+                .split_whitespace()
+                .map(|s| {
+                    if s.ends_with(":") {
+                        s[..s.len() - 1].parse::<u64>().unwrap()
+                    } else {
+                        s.parse::<u64>().unwrap()
+                    }
+                })
+                .collect();
+            (v[0], v[1..].to_owned())
+        })
+        .collect();
+    let sum: u64 = nums
+        .iter()
+        .map(|(n, v)| {
+            'outer: for m in 0..2u64.pow(v.len() as u32 - 1) {
+                let mut res = v[0];
+                for i in 1..v.len() {
+                    if (m >> (i - 1)) & 1 == 1 {
+                        res *= v[i];
+                    } else {
+                        res += v[i];
+                    }
+                    if res > *n {
+                        continue 'outer;
+                    }
+                }
+                if res == *n {
+                    return *n;
+                }
+            }
+            0
+        })
+        .sum();
+    fn solve(n: u64, v: &Vec<u64>, acc: u64, i: usize) -> u64 {
+        if i == v.len() {
+            if acc == n {
+                return n;
+            } else {
+                return 0;
+            }
+        }
+        if acc > n {
+            return 0;
+        }
+        let a = solve(n, v, acc + v[i], i + 1);
+        if a == n {
+            return n;
+        }
+        let b = solve(n, v, acc * v[i], i + 1);
+        if b == n {
+            return n;
+        }
+        let c = solve(
+            n,
+            v,
+            acc * (10u64.pow(v[i].ilog10() as u32 + 1)) + v[i],
+            i + 1,
+        );
+        if c == n {
+            n
+        } else {
+            0
+        }
+    }
+    let sum2: u64 = nums.iter().map(|(n, v)| solve(*n, v, v[0], 1)).sum();
+    println!("day07 {sum} {sum2}");
+}
+
 fn main() {
     day_01();
     day_02();
@@ -432,4 +507,5 @@ fn main() {
     day_04();
     day_05();
     day_06();
+    day_07();
 }
