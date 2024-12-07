@@ -109,11 +109,15 @@ fn day_03() {
         match state {
             State::S => {
                 if c == 'm' {
-                    idx -= 1;
+                    if idx > 0 {
+                        idx -= 1;
+                    }
                     state = State::M;
                 }
                 if c == 'd' {
-                    idx -= 1;
+                    if idx > 0 {
+                        idx -= 1;
+                    }
                     state = State::D;
                 }
             }
