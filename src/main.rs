@@ -426,31 +426,29 @@ fn day_06() {
 }
 
 fn day_07() {
-    fn solve(c: bool, n: u64, v: &Vec<u64>, acc: u64, i: usize) -> u64 {
-        if i == v.len() {
-            if acc == n {
-                return n;
+    fn solve2(c: bool, n: u64, v: &Vec<u64>) -> u64 {
+        let mut stack = Vec::with_capacity(25);
+        stack.push((v[0], 1));
+        loop {
+            if let Some((a, i)) = stack.pop() {
+                if i == v.len() {
+                    if a == n {
+                        return n;
+                    } else {
+                        continue;
+                    }
+                }
+                if a > n {
+                    continue;
+                }
+                stack.push((a + v[i], i + 1));
+                stack.push((a * v[i], i + 1));
+                if c {
+                    stack.push((a * (10u64.pow(v[i].ilog10() as u32 + 1)) + v[i], i + 1));
+                }
             } else {
                 return 0;
             }
-        }
-        if acc > n {
-            return 0;
-        }
-        if n == solve(c, n, v, acc + v[i], i + 1)
-            || n == solve(c, n, v, acc * v[i], i + 1)
-            || (c
-                && n == solve(
-                    c,
-                    n,
-                    v,
-                    acc * (10u64.pow(v[i].ilog10() as u32 + 1)) + v[i],
-                    i + 1,
-                ))
-        {
-            n
-        } else {
-            0
         }
     }
     let (sum, sum2): (u64, u64) = fs::read_to_string("input/input_07.txt")
@@ -469,7 +467,7 @@ fn day_07() {
                 .collect();
             (v[0], v[1..].to_owned())
         })
-        .map(|(n, v)| (solve(false, n, &v, v[0], 1), solve(true, n, &v, v[0], 1)))
+        .map(|(n, v)| (solve2(false, n, &v), solve2(true, n, &v)))
         .fold((0, 0), |(s, s2), (r, r2)| (s + r, s2 + r2));
     println!("day07 {sum} {sum2}");
 }
