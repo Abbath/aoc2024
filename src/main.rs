@@ -109,15 +109,11 @@ fn day_03() {
         match state {
             State::S => {
                 if c == 'm' {
-                    if idx > 0 {
-                        idx -= 1;
-                    }
+                    idx = idx.saturating_sub(1);
                     state = State::M;
                 }
                 if c == 'd' {
-                    if idx > 0 {
-                        idx -= 1;
-                    }
+                    idx = idx.saturating_sub(1);
                     state = State::D;
                 }
             }
@@ -423,14 +419,14 @@ fn day_06() {
                 field2[i * w + j] = '.';
             });
             field2[i * w + j] = '.';
-            return looped as u64;
+            looped as u64
         })
         .sum();
     println!("day06 {} {}", hs.len() + 1, sum);
 }
 
 fn day_07() {
-    fn solve2(c: bool, n: u64, v: &Vec<u64>) -> u64 {
+    fn solve2(c: bool, n: u64, v: &[u64]) -> u64 {
         let mut stack = Vec::with_capacity(25);
         stack.push((v[0], 1));
         loop {
@@ -448,7 +444,7 @@ fn day_07() {
                 stack.push((a + v[i], i + 1));
                 stack.push((a * v[i], i + 1));
                 if c {
-                    stack.push((a * (10u64.pow(v[i].ilog10() as u32 + 1)) + v[i], i + 1));
+                    stack.push((a * (10u64.pow(v[i].ilog10() + 1)) + v[i], i + 1));
                 }
             } else {
                 return 0;
@@ -462,11 +458,13 @@ fn day_07() {
             let v: Vec<_> = l
                 .split_whitespace()
                 .map(|s| {
-                    if s.ends_with(":") {
-                        s[..s.len() - 1].parse::<u64>().unwrap()
+                    (if let Some(st) = s.strip_suffix(":") {
+                        st
                     } else {
-                        s.parse::<u64>().unwrap()
-                    }
+                        s
+                    })
+                    .parse::<u64>()
+                    .unwrap()
                 })
                 .collect();
             (v[0], v[1..].to_owned())
@@ -490,14 +488,14 @@ fn day_08() {
             let c = lines[i as usize][j as usize];
             if c != '.' {
                 hm.entry(c)
-                    .and_modify(|v| v.push((i as i64, j as i64)))
-                    .or_insert(vec![(i as i64, j as i64)]);
+                    .and_modify(|v| v.push((i, j)))
+                    .or_insert(vec![(i, j)]);
             }
         });
     });
     let mut hs: HashSet<(i64, i64)> = HashSet::new();
     let mut hs2: HashSet<(i64, i64)> = HashSet::new();
-    hm.iter().for_each(|(_, v)| {
+    hm.values().for_each(|v| {
         (0..v.len() as i64).for_each(|i| {
             (i + 1..v.len() as i64).for_each(|j| {
                 let a = v[i as usize];
@@ -534,8 +532,8 @@ fn day_08() {
         })
     });
     let sum2: usize = hm
-        .iter()
-        .map(|(_, v)| v.iter().map(|x| !hs2.contains(x) as usize).sum::<usize>())
+        .values()
+        .map(|v| v.iter().map(|x| !hs2.contains(x) as usize).sum::<usize>())
         .sum();
     println!("day08 {} {}", hs.len(), hs2.len() + sum2);
 }
