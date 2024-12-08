@@ -476,6 +476,70 @@ fn day_07() {
     println!("day07 {sum} {sum2}");
 }
 
+fn day_08() {
+    let lines: Vec<_> = fs::read_to_string("input/input_08.txt")
+        .unwrap()
+        .lines()
+        .map(|l| l.chars().collect::<Vec<_>>())
+        .collect();
+    let h = lines.len() as i64;
+    let w = lines[0].len() as i64;
+    let mut hm: HashMap<char, Vec<(i64, i64)>> = HashMap::new();
+    (0..h).for_each(|i| {
+        (0..w).for_each(|j| {
+            let c = lines[i as usize][j as usize];
+            if c != '.' {
+                hm.entry(c)
+                    .and_modify(|v| v.push((i as i64, j as i64)))
+                    .or_insert(vec![(i as i64, j as i64)]);
+            }
+        });
+    });
+    let mut hs: HashSet<(i64, i64)> = HashSet::new();
+    let mut hs2: HashSet<(i64, i64)> = HashSet::new();
+    hm.iter().for_each(|(_, v)| {
+        (0..v.len() as i64).for_each(|i| {
+            (i + 1..v.len() as i64).for_each(|j| {
+                let a = v[i as usize];
+                let b = v[j as usize];
+                let (dx, dy) = (b.1 - a.1, b.0 - a.0);
+                let mut k = 1;
+                loop {
+                    let an = (a.0 - dy * k, a.1 - dx * k);
+                    let bn = (b.0 + dy * k, b.1 + dx * k);
+                    let p1 = if an.0 >= 0 && an.0 < h && an.1 >= 0 && an.1 < w {
+                        if k == 1 {
+                            hs.insert(an);
+                        }
+                        hs2.insert(an);
+                        true
+                    } else {
+                        false
+                    };
+                    let p2 = if bn.0 >= 0 && bn.0 < h && bn.1 >= 0 && bn.1 < w {
+                        if k == 1 {
+                            hs.insert(bn);
+                        }
+                        hs2.insert(bn);
+                        true
+                    } else {
+                        false
+                    };
+                    if !(p1 || p2) {
+                        break;
+                    }
+                    k += 1;
+                }
+            })
+        })
+    });
+    let sum2: usize = hm
+        .iter()
+        .map(|(_, v)| v.iter().map(|x| !hs2.contains(x) as usize).sum::<usize>())
+        .sum();
+    println!("day08 {} {}", hs.len(), hs2.len() + sum2);
+}
+
 fn main() {
     day_01();
     day_02();
@@ -484,4 +548,5 @@ fn main() {
     day_05();
     day_06();
     day_07();
+    day_08();
 }
