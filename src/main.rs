@@ -538,6 +538,73 @@ fn day_08() {
     println!("day08 {} {}", hs.len(), hs2.len() + sum2);
 }
 
+fn day_09() {
+    let nums: Vec<_> = fs::read_to_string("input/input_09.txt")
+        .unwrap()
+        .trim()
+        .chars()
+        .map(|c| c.to_digit(10).unwrap())
+        .collect();
+    let files: Vec<_> = nums.iter().step_by(2).collect();
+    let free_spaces: Vec<_> = nums.iter().skip(1).step_by(2).collect();
+    let len: usize = nums.iter().sum::<u32>() as usize;
+    let mut v: Vec<i64> = vec![-1; len];
+    let mut idx = 0usize;
+    let mut fs: Vec<(usize, usize)> = Vec::new();
+    let mut fss: Vec<(usize, usize)> = Vec::new();
+    files.iter().enumerate().for_each(|(i, &n)| {
+        fs.push((idx, *n as usize));
+        (0..*n).for_each(|_| {
+            v[idx] = i as i64;
+            idx += 1;
+        });
+        if i != files.len() - 1 {
+            fss.push((idx, *free_spaces[i] as usize));
+            idx += *free_spaces[i] as usize;
+        }
+    });
+    let mut v2 = v.clone();
+    idx = 0;
+    let mut ridx = v.len() - 1;
+    loop {
+        while v[idx] != -1 {
+            idx += 1;
+        }
+        while v[ridx] == -1 {
+            ridx -= 1;
+        }
+        if idx >= ridx {
+            break;
+        }
+        v[idx] = v[ridx];
+        v[ridx] = -1;
+    }
+    let sum: i64 = v
+        .iter()
+        .enumerate()
+        .map(|(i, &x)| if x < 0 { 0 } else { x * i as i64 })
+        .sum();
+    fs.iter().rev().for_each(|&(pos, len)| {
+        for item in &mut fss {
+            let &mut (spos, slen) = item;
+            if slen >= len && pos > spos {
+                (0..len).for_each(|n| {
+                    v2[spos + n] = v2[pos + n];
+                    v2[pos + n] = -1;
+                });
+                *item = (spos + len, slen - len);
+                break;
+            }
+        }
+    });
+    let sum2: i64 = v2
+        .iter()
+        .enumerate()
+        .map(|(i, &x)| if x < 0 { 0 } else { x * i as i64 })
+        .sum();
+    println!("day09 {sum} {sum2}");
+}
+
 fn main() {
     day_01();
     day_02();
@@ -547,4 +614,5 @@ fn main() {
     day_06();
     day_07();
     day_08();
+    day_09();
 }
