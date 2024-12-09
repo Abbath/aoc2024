@@ -587,7 +587,10 @@ fn day_09() {
     fs.iter().rev().for_each(|&(pos, len)| {
         for item in &mut fss {
             let &mut (spos, slen) = item;
-            if slen >= len && pos > spos {
+            if spos >= pos {
+                break;
+            }
+            if slen >= len {
                 (0..len).for_each(|n| {
                     v2[spos + n] = v2[pos + n];
                     v2[pos + n] = -1;
