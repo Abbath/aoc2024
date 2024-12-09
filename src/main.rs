@@ -584,8 +584,9 @@ fn day_09() {
         .enumerate()
         .map(|(i, &x)| if x < 0 { 0 } else { x * i as i64 })
         .sum();
+    let mut cache: [usize; 9] = [0; 9];
     fs.iter().rev().for_each(|&(pos, len)| {
-        for item in &mut fss {
+        for (i, item) in fss.iter_mut().enumerate().skip(cache[len - 1]) {
             let &mut (spos, slen) = item;
             if spos >= pos {
                 break;
@@ -596,6 +597,7 @@ fn day_09() {
                     v2[pos + n] = -1;
                 });
                 *item = (spos + len, slen - len);
+                cache[len - 1] = i;
                 break;
             }
         }
