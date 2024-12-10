@@ -616,7 +616,7 @@ fn day_10() {
         .lines()
         .map(|s| s.chars().map(|c| c.to_digit(10).unwrap() as u64).collect())
         .collect();
-    fn solve(nums: &Vec<Vec<u64>>, i: usize, j: usize) -> (u64, u64) {
+    fn solve(nums: &[Vec<u64>], i: usize, j: usize) -> (u64, u64) {
         let mut stack = Vec::with_capacity(10);
         let h = nums.len();
         let w = nums[0].len();
