@@ -610,6 +610,64 @@ fn day_09() {
     println!("day09 {sum} {sum2}");
 }
 
+fn day_10() {
+    let nums: Vec<Vec<_>> = fs::read_to_string("input/input_10.txt")
+        .unwrap()
+        .lines()
+        .map(|s| s.chars().map(|c| c.to_digit(10).unwrap() as u64).collect())
+        .collect();
+    fn solve(nums: &Vec<Vec<u64>>, i: usize, j: usize) -> (u64, u64) {
+        let mut stack = Vec::with_capacity(10);
+        let h = nums.len();
+        let w = nums[0].len();
+        stack.push((i, j));
+        let mut sum = 0;
+        let mut sum2 = 0;
+        let mut hs: HashSet<(usize, usize)> = HashSet::new();
+        loop {
+            if let Some((i, j)) = stack.pop() {
+                if nums[i][j] == 9 {
+                    if !hs.contains(&(i, j)) {
+                        sum += 1;
+                        hs.insert((i, j));
+                    }
+                    sum2 += 1;
+                } else {
+                    let val = nums[i][j];
+                    if i > 0 && nums[i - 1][j] - val == 1 {
+                        stack.push((i - 1, j));
+                    }
+                    if j > 0 && nums[i][j - 1] - val == 1 {
+                        stack.push((i, j - 1));
+                    }
+                    if i < h - 1 && nums[i + 1][j] - val == 1 {
+                        stack.push((i + 1, j));
+                    }
+                    if j < w - 1 && nums[i][j + 1] - val == 1 {
+                        stack.push((i, j + 1));
+                    }
+                }
+            } else {
+                return (sum, sum2);
+            }
+        }
+    }
+    let (sum, sum2): (u64, u64) = (0..nums.len())
+        .map(|i| {
+            (0..nums[i].len())
+                .map(|j| {
+                    if nums[i][j] == 0 {
+                        solve(&nums, i, j)
+                    } else {
+                        (0, 0)
+                    }
+                })
+                .fold((0, 0), |(s, s2), (n, n2)| (s + n, s2 + n2))
+        })
+        .fold((0, 0), |(s, s2), (n, n2)| (s + n, s2 + n2));
+    println!("day10 {sum} {sum2}");
+}
+
 fn main() {
     day_01();
     day_02();
@@ -620,4 +678,5 @@ fn main() {
     day_07();
     day_08();
     day_09();
+    day_10();
 }
