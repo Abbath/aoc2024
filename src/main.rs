@@ -668,6 +668,44 @@ fn day_10() {
     println!("day10 {sum} {sum2}");
 }
 
+fn day_11() {
+    let mut nums: HashMap<u64, u64> = fs::read_to_string("input/input_11.txt")
+        .unwrap()
+        .split_whitespace()
+        .map(|s| (s.parse::<u64>().unwrap(), 1))
+        .collect();
+    let mut sum = 0u64;
+    (0..75).for_each(|i| {
+        let mut new_nums: HashMap<u64, u64> = HashMap::new();
+        nums.iter().for_each(|(&n, &k)| {
+            if n == 0 {
+                new_nums.entry(1).and_modify(|x| *x += k).or_insert(k);
+            } else if n.ilog10() % 2 == 1 {
+                let m = (n.ilog10() + 1) / 2;
+                new_nums
+                    .entry(n / 10u64.pow(m))
+                    .and_modify(|x| *x += k)
+                    .or_insert(k);
+                new_nums
+                    .entry(n % 10u64.pow(m))
+                    .and_modify(|x| *x += k)
+                    .or_insert(k);
+            } else {
+                new_nums
+                    .entry(n * 2024)
+                    .and_modify(|x| *x += k)
+                    .or_insert(k);
+            }
+        });
+        nums = new_nums;
+        if i == 25 {
+            sum = nums.iter().map(|(&_, &k)| k).sum::<u64>();
+        }
+    });
+    let sum2 = nums.iter().map(|(&_, &k)| k).sum::<u64>();
+    println!("day11 {sum} {sum2}");
+}
+
 fn main() {
     day_01();
     day_02();
@@ -679,4 +717,5 @@ fn main() {
     day_08();
     day_09();
     day_10();
+    day_11();
 }
