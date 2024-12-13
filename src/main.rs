@@ -1,6 +1,8 @@
 use std::cmp::Ordering;
-use std::collections::{HashMap, HashSet};
-use std::fs;
+use std::{
+    collections::{BTreeMap, HashMap, HashSet},
+    fs,
+};
 
 fn day_01() {
     let (mut left, mut right): (Vec<_>, Vec<_>) = fs::read_to_string("input/input_01.txt")
@@ -706,6 +708,161 @@ fn day_11() {
     println!("day11 {sum} {sum2}");
 }
 
+fn day_12() {
+    let field: Vec<Vec<_>> = fs::read_to_string("input/input_12.txt")
+        .unwrap()
+        .lines()
+        .map(|l| l.chars().collect())
+        .collect();
+    let h = field.len();
+    let w = field[0].len();
+    let is_hor = |(a, _): (usize, usize), (c, _): (usize, usize)| a == c;
+    let angle = |x1: i64, y1: i64, x2: i64, y2: i64| {
+        let dot = (x1 as i64 * x2 as i64 + y1 as i64 * y2 as i64) as f64;
+        let det = (x1 as i64 * y2 as i64 - y1 as i64 * x2 as i64) as f64;
+        det.atan2(dot)
+    };
+    let select_closest = |(a, b): (usize, usize), (c, d): (usize, usize), v: &[(usize, usize)]| {
+        let v1 = (c as i64 - a as i64, d as i64 - b as i64);
+        v.iter()
+            .min_by(|&x, &y| {
+                let v2 = (x.0 as i64 - c as i64, x.1 as i64 - d as i64);
+                let v3 = (y.0 as i64 - c as i64, y.1 as i64 - d as i64);
+                let angle1 = angle(v1.0, v1.1, v2.0, v2.1);
+                let angle2 = angle(v1.0, v1.1, v3.0, v3.1);
+                angle1.total_cmp(&angle2)
+            })
+            .unwrap()
+            .clone()
+    };
+    let find =
+        |f: &[Vec<char>], fnd: &mut Vec<Vec<bool>>, i: usize, j: usize, c: char| -> (u64, u64) {
+            let mut hs: HashSet<(usize, usize)> = HashSet::new();
+            hs.insert((i, j));
+            let mut stack = Vec::with_capacity(100);
+            stack.push((i, j));
+            let mut sum_a = 1u64;
+            let mut sum_p = 0u64;
+            let mut edges = BTreeMap::<(usize, usize), Vec<(usize, usize)>>::new();
+            loop {
+                if let Some((i, j)) = stack.pop() {
+                    if i > 0 {
+                        if f[i - 1][j] == c && !fnd[i - 1][j] {
+                            fnd[i - 1][j] = true;
+                            sum_a += 1;
+                            stack.push((i - 1, j));
+                        } else if f[i - 1][j] != c {
+                            //edges.insert((i, j), (i, j + 1));
+                            edges.entry((i, j)).or_default().push((i, j + 1));
+                            sum_p += 1;
+                        }
+                    } else {
+                        //edges.insert((0, j), (0, j + 1));
+                        edges.entry((0, j)).or_default().push((0, j + 1));
+                        sum_p += 1;
+                    }
+                    if j > 0 {
+                        if f[i][j - 1] == c && !fnd[i][j - 1] {
+                            fnd[i][j - 1] = true;
+                            sum_a += 1;
+                            stack.push((i, j - 1));
+                        } else if f[i][j - 1] != c {
+                            edges.entry((i + 1, j)).or_default().push((i, j));
+                            sum_p += 1;
+                        }
+                    } else {
+                        edges.entry((i + 1, 0)).or_default().push((i, 0));
+                        sum_p += 1;
+                    }
+                    if i < h - 1 {
+                        if f[i + 1][j] == c && !fnd[i + 1][j] {
+                            fnd[i + 1][j] = true;
+                            sum_a += 1;
+                            stack.push((i + 1, j));
+                        } else if f[i + 1][j] != c {
+                            edges.entry((i + 1, j + 1)).or_default().push((i + 1, j));
+                            sum_p += 1;
+                        }
+                    } else {
+                        edges.entry((h, j + 1)).or_default().push((h, j));
+                        sum_p += 1;
+                    }
+                    if j < w - 1 {
+                        if f[i][j + 1] == c && !fnd[i][j + 1] {
+                            fnd[i][j + 1] = true;
+                            sum_a += 1;
+                            stack.push((i, j + 1));
+                        } else if f[i][j + 1] != c {
+                            edges.entry((i, j + 1)).or_default().push((i + 1, j + 1));
+                            sum_p += 1;
+                        }
+                    } else {
+                        edges.entry((i, w)).or_default().push((i + 1, w));
+                        sum_p += 1;
+                    }
+                } else {
+                    let mut tr = 0u64;
+                    let mut hs = HashSet::<((usize, usize), (usize, usize))>::new();
+                    let len1 = edges.iter().map(|(_, v)| v.len()).sum::<usize>();
+                    while len1 != hs.len() {
+                        let ses = edges
+                            .iter()
+                            .skip_while(|&(&k, v)| hs.contains(&(k, v[0])))
+                            .nth(0)
+                            .unwrap();
+                        let &os = ses.0;
+                        let oe = ses.1[0];
+                        let mut ih = is_hor(os, oe);
+                        let oih = ih;
+                        let mut s = os;
+                        let mut e = oe;
+                        hs.insert((os, oe));
+                        loop {
+                            let es = edges[&e].clone();
+                            let s0 = e;
+                            e = select_closest(s, e, &es);
+                            s = s0;
+                            hs.insert((s, e));
+                            if os == s && oe == e {
+                                if ih != oih {
+                                    tr += 1;
+                                }
+                                break;
+                            }
+                            let d = is_hor(s, e);
+                            if d != ih {
+                                tr += 1;
+                                ih = d;
+                            }
+                        }
+                    }
+                    return (sum_a * sum_p, sum_a * tr);
+                }
+            }
+        };
+    let mut found: Vec<Vec<bool>> = field
+        .iter()
+        .map(|v| v.iter().map(|_| false).collect())
+        .collect();
+    let (sum, sum2): (u64, u64) = (0..h)
+        .map(|i| {
+            (0..w)
+                .map(|j| {
+                    if !found[i][j] {
+                        found[i][j] = true;
+                        let x = find(&field, &mut found, i, j, field[i][j]);
+                        x
+                    } else {
+                        (0, 0)
+                    }
+                })
+                .fold((0, 0), |(s, s2), (n, n2)| (s + n, s2 + n2))
+        })
+        .fold((0, 0), |(s, s2), (n, n2)| (s + n, s2 + n2));
+
+    println!("day12 {sum} {sum2}");
+}
+
 fn main() {
     day_01();
     day_02();
@@ -718,4 +875,5 @@ fn main() {
     day_09();
     day_10();
     day_11();
+    day_12();
 }
