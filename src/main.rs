@@ -833,6 +833,89 @@ fn day_12() {
     println!("day12 {sum} {sum2}");
 }
 
+fn day_13() {
+    let lines: Vec<_> = fs::read_to_string("input/test.txt")
+        .unwrap()
+        .lines()
+        .map(|l| l.to_string())
+        .collect();
+    let mut tasks: Vec<((u64, u64), (u64, u64), (u64, u64))> = Vec::new();
+    let mut a = (0u64, 0u64);
+    let mut b = (0u64, 0u64);
+    lines.iter().for_each(|l| {
+        if l.len() > 0 {
+            let parts: Vec<_> = l.split_whitespace().collect();
+            if parts[1].starts_with("A") {
+                a = (
+                    parts[2]
+                        .split("+")
+                        .nth(1)
+                        .unwrap()
+                        .strip_suffix(",")
+                        .unwrap()
+                        .parse::<u64>()
+                        .unwrap(),
+                    parts[3].split("+").nth(1).unwrap().parse::<u64>().unwrap(),
+                );
+            }
+            if parts[1].starts_with("B") {
+                b = (
+                    parts[2]
+                        .split("+")
+                        .nth(1)
+                        .unwrap()
+                        .strip_suffix(",")
+                        .unwrap()
+                        .parse::<u64>()
+                        .unwrap(),
+                    parts[3].split("+").nth(1).unwrap().parse::<u64>().unwrap(),
+                );
+            }
+            if parts[1].starts_with("X") {
+                let c = (
+                    parts[1]
+                        .split("=")
+                        .nth(1)
+                        .unwrap()
+                        .strip_suffix(",")
+                        .unwrap()
+                        .parse::<u64>()
+                        .unwrap(),
+                    parts[2].split("=").nth(1).unwrap().parse::<u64>().unwrap(),
+                );
+                tasks.push((a, b, c));
+            }
+        }
+    });
+    tasks.iter().for_each(|(a, b, c)| {
+        let target = c;
+        let mut stack: Vec<(u64, u64)> = Vec::with_capacity(100);
+        stack.push((0, 0));
+        loop {
+            if let Some((i, j)) = stack.pop() {
+                let price = i * 3 + j;
+                let x = a.0 * i + b.0 * j;
+                let y = a.1 * i + b.1 * j;
+                //println!("{x} {y} {price}");
+                if (x, y) == *target {
+                    println!("FOUND {price}");
+                }
+                if x < target.0 && y < target.1 {
+                    if i < 100 {
+                        stack.push((i + 1, j));
+                    }
+                    if j < 100 {
+                        stack.push((i, j + 1));
+                    }
+                }
+            } else {
+                break;
+            }
+        }
+    });
+    println!("{tasks:?}");
+}
+
 fn main() {
     day_01();
     day_02();
@@ -846,4 +929,5 @@ fn main() {
     day_10();
     day_11();
     day_12();
+    day_13();
 }
