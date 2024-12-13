@@ -834,7 +834,7 @@ fn day_12() {
 }
 
 fn day_13() {
-    let lines: Vec<_> = fs::read_to_string("input/test.txt")
+    let lines: Vec<_> = fs::read_to_string("input/input_13.txt")
         .unwrap()
         .lines()
         .map(|l| l.to_string())
@@ -887,33 +887,54 @@ fn day_13() {
             }
         }
     });
-    tasks.iter().for_each(|(a, b, c)| {
-        let target = c;
-        let mut stack: Vec<(u64, u64)> = Vec::with_capacity(100);
-        stack.push((0, 0));
-        loop {
-            if let Some((i, j)) = stack.pop() {
-                let price = i * 3 + j;
-                let x = a.0 * i + b.0 * j;
-                let y = a.1 * i + b.1 * j;
-                //println!("{x} {y} {price}");
-                if (x, y) == *target {
-                    println!("FOUND {price}");
-                }
-                if x < target.0 && y < target.1 {
-                    if i < 100 {
-                        stack.push((i + 1, j));
-                    }
-                    if j < 100 {
-                        stack.push((i, j + 1));
-                    }
-                }
+    let sum = tasks
+        .iter()
+        .map(|&((a, c), (b, d), (r1, r2))| {
+            let a = a as f64;
+            let b = b as f64;
+            let c = c as f64;
+            let d = d as f64;
+            let r1 = r1 as f64;
+            let r2 = r2 as f64;
+            let det = 1.0 / (a * d - b * c);
+            let a1 = d * det;
+            let b1 = -b * det;
+            let c1 = -c * det;
+            let d1 = a * det;
+            let x = a1 * r1 + b1 * r2;
+            let y = c1 * r1 + d1 * r2;
+            if (x.round() - x).abs() < 0.01 && (y.round() - y).abs() < 0.01 {
+                x.round() as u64 * 3 + y.round() as u64
             } else {
-                break;
+                0
             }
-        }
-    });
-    println!("{tasks:?}");
+        })
+        .sum::<u64>();
+    let sum2 = tasks
+        .iter()
+        .map(|&((ax, ay), (bx, by), (rx, ry))| {
+            let ax = ax as i64;
+            let ay = ay as i64;
+            let bx = bx as i64;
+            let by = by as i64;
+            let rx = (rx + 10000000000000) as i64;
+            let ry = (ry + 10000000000000) as i64;
+            let o = bx * ry - by * rx;
+            let p = ay * bx - ax * by;
+            if o % p != 0 {
+                0
+            } else {
+                let op = o / p;
+                if (rx - (op * ax)) % bx != 0 {
+                    0
+                } else {
+                    let po = (rx - (op * ax)) / bx;
+                    op * 3 + po
+                }
+            }
+        })
+        .sum::<i64>();
+    println!("day13 {sum} {sum2}");
 }
 
 fn main() {
