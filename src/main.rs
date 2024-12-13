@@ -718,9 +718,7 @@ fn day_12() {
     let w = field[0].len();
     let is_hor = |(a, _): (usize, usize), (c, _): (usize, usize)| a == c;
     let angle = |x1: i64, y1: i64, x2: i64, y2: i64| {
-        let dot = (x1 * x2 + y1 * y2) as f64;
-        let det = (x1 * y2 - y1 * x2) as f64;
-        det.atan2(dot)
+        ((x1 * y2 - y1 * x2) as f64).atan2((x1 * x2 + y1 * y2) as f64)
     };
     let select_closest = |(a, b): (usize, usize), (c, d): (usize, usize), v: &[(usize, usize)]| {
         let v1 = (c as i64 - a as i64, d as i64 - b as i64);
@@ -728,9 +726,7 @@ fn day_12() {
             .min_by(|&x, &y| {
                 let v2 = (x.0 as i64 - c as i64, x.1 as i64 - d as i64);
                 let v3 = (y.0 as i64 - c as i64, y.1 as i64 - d as i64);
-                let angle1 = angle(v1.0, v1.1, v2.0, v2.1);
-                let angle2 = angle(v1.0, v1.1, v3.0, v3.1);
-                angle1.total_cmp(&angle2)
+                angle(v1.0, v1.1, v2.0, v2.1).total_cmp(&angle(v1.0, v1.1, v3.0, v3.1))
             })
             .unwrap()
     };
@@ -741,67 +737,42 @@ fn day_12() {
             let mut stack = Vec::with_capacity(100);
             stack.push((i, j));
             let mut sum_a = 1u64;
-            let mut sum_p = 0u64;
             let mut edges = BTreeMap::<(usize, usize), Vec<(usize, usize)>>::new();
             loop {
                 if let Some((i, j)) = stack.pop() {
-                    if i > 0 {
-                        if f[i - 1][j] == c && !fnd[i - 1][j] {
-                            fnd[i - 1][j] = true;
-                            sum_a += 1;
-                            stack.push((i - 1, j));
-                        } else if f[i - 1][j] != c {
-                            edges.entry((i, j)).or_default().push((i, j + 1));
-                            sum_p += 1;
-                        }
-                    } else {
-                        edges.entry((0, j)).or_default().push((0, j + 1));
-                        sum_p += 1;
+                    if i > 0 && f[i - 1][j] == c && !fnd[i - 1][j] {
+                        fnd[i - 1][j] = true;
+                        sum_a += 1;
+                        stack.push((i - 1, j));
+                    } else if i == 0 || f[i - 1][j] != c {
+                        edges.entry((i, j)).or_default().push((i, j + 1));
                     }
-                    if j > 0 {
-                        if f[i][j - 1] == c && !fnd[i][j - 1] {
-                            fnd[i][j - 1] = true;
-                            sum_a += 1;
-                            stack.push((i, j - 1));
-                        } else if f[i][j - 1] != c {
-                            edges.entry((i + 1, j)).or_default().push((i, j));
-                            sum_p += 1;
-                        }
-                    } else {
-                        edges.entry((i + 1, 0)).or_default().push((i, 0));
-                        sum_p += 1;
+                    if j > 0 && f[i][j - 1] == c && !fnd[i][j - 1] {
+                        fnd[i][j - 1] = true;
+                        sum_a += 1;
+                        stack.push((i, j - 1));
+                    } else if j == 0 || f[i][j - 1] != c {
+                        edges.entry((i + 1, j)).or_default().push((i, j));
                     }
-                    if i < h - 1 {
-                        if f[i + 1][j] == c && !fnd[i + 1][j] {
-                            fnd[i + 1][j] = true;
-                            sum_a += 1;
-                            stack.push((i + 1, j));
-                        } else if f[i + 1][j] != c {
-                            edges.entry((i + 1, j + 1)).or_default().push((i + 1, j));
-                            sum_p += 1;
-                        }
-                    } else {
-                        edges.entry((h, j + 1)).or_default().push((h, j));
-                        sum_p += 1;
+                    if i < h - 1 && f[i + 1][j] == c && !fnd[i + 1][j] {
+                        fnd[i + 1][j] = true;
+                        sum_a += 1;
+                        stack.push((i + 1, j));
+                    } else if i == h - 1 || f[i + 1][j] != c {
+                        edges.entry((i + 1, j + 1)).or_default().push((i + 1, j));
                     }
-                    if j < w - 1 {
-                        if f[i][j + 1] == c && !fnd[i][j + 1] {
-                            fnd[i][j + 1] = true;
-                            sum_a += 1;
-                            stack.push((i, j + 1));
-                        } else if f[i][j + 1] != c {
-                            edges.entry((i, j + 1)).or_default().push((i + 1, j + 1));
-                            sum_p += 1;
-                        }
-                    } else {
-                        edges.entry((i, w)).or_default().push((i + 1, w));
-                        sum_p += 1;
+                    if j < w - 1 && f[i][j + 1] == c && !fnd[i][j + 1] {
+                        fnd[i][j + 1] = true;
+                        sum_a += 1;
+                        stack.push((i, j + 1));
+                    } else if j == w - 1 || f[i][j + 1] != c {
+                        edges.entry((i, j + 1)).or_default().push((i + 1, j + 1));
                     }
                 } else {
                     let mut tr = 0u64;
                     let mut hs = HashSet::<((usize, usize), (usize, usize))>::new();
-                    let len1 = edges.values().map(|v| v.len()).sum::<usize>();
-                    while len1 != hs.len() {
+                    let len = edges.values().map(|v| v.len()).sum::<usize>();
+                    while len != hs.len() {
                         let ses = edges
                             .iter()
                             .find(|&(&k, v)| !hs.contains(&(k, v[0])))
@@ -816,7 +787,11 @@ fn day_12() {
                         loop {
                             let es = edges[&e].clone();
                             let s0 = e;
-                            e = select_closest(s, e, &es);
+                            e = if es.len() == 1 {
+                                es[0]
+                            } else {
+                                select_closest(s, e, &es)
+                            };
                             s = s0;
                             hs.insert((s, e));
                             if os == s && oe == e {
@@ -832,7 +807,7 @@ fn day_12() {
                             }
                         }
                     }
-                    return (sum_a * sum_p, sum_a * tr);
+                    return (sum_a * len as u64, sum_a * tr);
                 }
             }
         };
