@@ -718,13 +718,13 @@ fn day_12() {
     let w = field[0].len();
     let is_hor = |(a, _): (usize, usize), (c, _): (usize, usize)| a == c;
     let angle = |x1: i64, y1: i64, x2: i64, y2: i64| {
-        let dot = (x1 as i64 * x2 as i64 + y1 as i64 * y2 as i64) as f64;
-        let det = (x1 as i64 * y2 as i64 - y1 as i64 * x2 as i64) as f64;
+        let dot = (x1 * x2 + y1 * y2) as f64;
+        let det = (x1 * y2 - y1 * x2) as f64;
         det.atan2(dot)
     };
     let select_closest = |(a, b): (usize, usize), (c, d): (usize, usize), v: &[(usize, usize)]| {
         let v1 = (c as i64 - a as i64, d as i64 - b as i64);
-        v.iter()
+        *v.iter()
             .min_by(|&x, &y| {
                 let v2 = (x.0 as i64 - c as i64, x.1 as i64 - d as i64);
                 let v3 = (y.0 as i64 - c as i64, y.1 as i64 - d as i64);
@@ -733,7 +733,6 @@ fn day_12() {
                 angle1.total_cmp(&angle2)
             })
             .unwrap()
-            .clone()
     };
     let find =
         |f: &[Vec<char>], fnd: &mut Vec<Vec<bool>>, i: usize, j: usize, c: char| -> (u64, u64) {
@@ -752,12 +751,10 @@ fn day_12() {
                             sum_a += 1;
                             stack.push((i - 1, j));
                         } else if f[i - 1][j] != c {
-                            //edges.insert((i, j), (i, j + 1));
                             edges.entry((i, j)).or_default().push((i, j + 1));
                             sum_p += 1;
                         }
                     } else {
-                        //edges.insert((0, j), (0, j + 1));
                         edges.entry((0, j)).or_default().push((0, j + 1));
                         sum_p += 1;
                     }
@@ -803,12 +800,11 @@ fn day_12() {
                 } else {
                     let mut tr = 0u64;
                     let mut hs = HashSet::<((usize, usize), (usize, usize))>::new();
-                    let len1 = edges.iter().map(|(_, v)| v.len()).sum::<usize>();
+                    let len1 = edges.values().map(|v| v.len()).sum::<usize>();
                     while len1 != hs.len() {
                         let ses = edges
                             .iter()
-                            .skip_while(|&(&k, v)| hs.contains(&(k, v[0])))
-                            .nth(0)
+                            .find(|&(&k, v)| !hs.contains(&(k, v[0])))
                             .unwrap();
                         let &os = ses.0;
                         let oe = ses.1[0];
@@ -850,8 +846,7 @@ fn day_12() {
                 .map(|j| {
                     if !found[i][j] {
                         found[i][j] = true;
-                        let x = find(&field, &mut found, i, j, field[i][j]);
-                        x
+                        find(&field, &mut found, i, j, field[i][j])
                     } else {
                         (0, 0)
                     }
