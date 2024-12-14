@@ -937,6 +937,80 @@ fn day_13() {
     println!("day13 {sum} {sum2}");
 }
 
+fn day_14() {
+    #[derive(Debug)]
+    struct Robot {
+        pos: (i64, i64),
+        vel: (i64, i64),
+    }
+    let robots: Vec<_> = fs::read_to_string("input/input_14.txt")
+        .unwrap()
+        .lines()
+        .map(|l| {
+            let parts = l
+                .split_whitespace()
+                .map(|l1| l1.split("=").nth(1).unwrap().split(",").collect::<Vec<_>>())
+                .collect::<Vec<_>>();
+            Robot {
+                pos: (
+                    parts[0][0].parse::<i64>().unwrap(),
+                    parts[0][1].parse::<i64>().unwrap(),
+                ),
+                vel: (
+                    parts[1][0].parse::<i64>().unwrap(),
+                    parts[1][1].parse::<i64>().unwrap(),
+                ),
+            }
+        })
+        .collect();
+    let w = 101i64;
+    let h = 103i64;
+    let quadrants = robots
+        .iter()
+        .map(|r| {
+            let p = (
+                (r.pos.0 + r.vel.0 * 100).rem_euclid(w),
+                (r.pos.1 + r.vel.1 * 100).rem_euclid(h),
+            );
+            if p.0 < w / 2 && p.1 < h / 2 {
+                (1, 0, 0, 0)
+            } else if p.0 < w / 2 && p.1 > h / 2 {
+                (0, 1, 0, 0)
+            } else if p.0 > w / 2 && p.1 > h / 2 {
+                (0, 0, 1, 0)
+            } else if p.0 > w / 2 && p.1 < h / 2 {
+                (0, 0, 0, 1)
+            } else {
+                (0, 0, 0, 0)
+            }
+        })
+        .fold((0, 0, 0, 0), |(s1, s2, s3, s4), (n1, n2, n3, n4)| {
+            (s1 + n1, s2 + n2, s3 + n3, s4 + n4)
+        });
+    let mut i = 0;
+    let time = loop {
+        let mut hs1 = HashMap::<i64, u64>::new();
+        let mut hs2 = HashMap::<i64, u64>::new();
+        for r in robots.iter() {
+            let p = (
+                (r.pos.0 + r.vel.0 * i).rem_euclid(w),
+                (r.pos.1 + r.vel.1 * i).rem_euclid(h),
+            );
+            hs1.entry(p.1).and_modify(|x| *x += 1).or_insert(1);
+            hs2.entry(p.0).and_modify(|x| *x += 1).or_insert(1);
+        }
+        if *hs1.values().max().unwrap() >= 32 && *hs2.values().max().unwrap() >= 32 {
+            break i;
+        }
+        i += 1;
+    };
+    println!(
+        "day14 {} {}",
+        quadrants.0 * quadrants.1 * quadrants.2 * quadrants.3,
+        time
+    );
+}
+
 fn main() {
     day_01();
     day_02();
@@ -951,4 +1025,5 @@ fn main() {
     day_11();
     day_12();
     day_13();
+    day_14();
 }
