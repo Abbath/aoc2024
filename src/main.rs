@@ -1,3 +1,4 @@
+use core::panic;
 use std::cmp::Ordering;
 use std::{
     collections::{BTreeMap, HashMap, HashSet},
@@ -1011,6 +1012,194 @@ fn day_14() {
     );
 }
 
+fn day_15() {
+    let lines: Vec<String> = fs::read_to_string("input/input_15.txt")
+        .unwrap()
+        .lines()
+        .map(|l| l.to_string())
+        .collect();
+    let field = lines
+        .iter()
+        .take_while(|l| l.contains("#"))
+        .map(|l| l.chars().collect::<Vec<_>>())
+        .collect::<Vec<_>>();
+    let moves = lines
+        .iter()
+        .skip_while(|l| l.contains("#") || l.is_empty())
+        .map(|l| l.chars())
+        .flatten()
+        .collect::<Vec<_>>();
+    let mut walls = HashSet::<(i64, i64)>::new();
+    let mut crates = HashSet::<(i64, i64)>::new();
+    let mut robot = (0i64, 0i64);
+    let w = field[0].len() as i64;
+    let h = field.len() as i64;
+    (0..field.len()).for_each(|i| {
+        (0..field[0].len()).for_each(|j| match field[i][j] {
+            '#' => {
+                walls.insert((i as i64, j as i64));
+            }
+            'O' => {
+                crates.insert((i as i64, j as i64));
+            }
+            '@' => {
+                robot = (i as i64, j as i64);
+            }
+            _ => {}
+        });
+    });
+    moves.iter().for_each(|m| {
+        match m {
+            '>' => {
+                if robot.1 < w - 1 {
+                    let new_robot = (robot.0, robot.1 + 1);
+                    if !walls.contains(&new_robot) && !crates.contains(&new_robot) {
+                        robot = new_robot;
+                    } else if crates.contains(&new_robot) {
+                        let mut chain: Vec<(i64, i64)> = Vec::with_capacity(h.max(w) as usize);
+                        chain.push(new_robot);
+                        let mut curr = new_robot;
+                        let mut found = false;
+                        loop {
+                            let curr1 = (curr.0, curr.1 + 1);
+                            if curr1.1 >= w || walls.contains(&curr1) {
+                                break;
+                            } else if crates.contains(&curr1) {
+                                chain.push(curr1);
+                                curr = curr1;
+                            } else {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if found {
+                            for c in chain.iter().rev() {
+                                crates.remove(c);
+                                crates.insert((c.0, c.1 + 1));
+                            }
+                            robot = new_robot;
+                        }
+                    }
+                }
+            }
+            '<' => {
+                if robot.1 > 0 {
+                    let new_robot = (robot.0, robot.1 - 1);
+                    if !walls.contains(&new_robot) && !crates.contains(&new_robot) {
+                        robot = new_robot;
+                    } else if crates.contains(&new_robot) {
+                        let mut chain: Vec<(i64, i64)> = Vec::with_capacity(h.max(w) as usize);
+                        chain.push(new_robot);
+                        let mut curr = new_robot;
+                        let mut found = false;
+                        loop {
+                            let curr1 = (curr.0, curr.1 - 1);
+                            if curr1.1 < 0 || walls.contains(&curr1) {
+                                break;
+                            } else if crates.contains(&curr1) {
+                                chain.push(curr1);
+                                curr = curr1;
+                            } else {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if found {
+                            for c in chain.iter().rev() {
+                                crates.remove(c);
+                                crates.insert((c.0, c.1 - 1));
+                            }
+                            robot = new_robot;
+                        }
+                    }
+                }
+            }
+            'v' => {
+                if robot.0 < h - 1 {
+                    let new_robot = (robot.0 + 1, robot.1);
+                    if !walls.contains(&new_robot) && !crates.contains(&new_robot) {
+                        robot = new_robot;
+                    } else if crates.contains(&new_robot) {
+                        let mut chain: Vec<(i64, i64)> = Vec::with_capacity(h.max(w) as usize);
+                        chain.push(new_robot);
+                        let mut curr = new_robot;
+                        let mut found = false;
+                        loop {
+                            let curr1 = (curr.0 + 1, curr.1);
+                            if curr1.0 >= h || walls.contains(&curr1) {
+                                break;
+                            } else if crates.contains(&curr1) {
+                                chain.push(curr1);
+                                curr = curr1;
+                            } else {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if found {
+                            for c in chain.iter().rev() {
+                                crates.remove(c);
+                                crates.insert((c.0 + 1, c.1));
+                            }
+                            robot = new_robot;
+                        }
+                    }
+                }
+            }
+            '^' => {
+                if robot.0 > 0 {
+                    let new_robot = (robot.0 - 1, robot.1);
+                    if !walls.contains(&new_robot) && !crates.contains(&new_robot) {
+                        robot = new_robot;
+                    } else if crates.contains(&new_robot) {
+                        let mut chain: Vec<(i64, i64)> = Vec::with_capacity(h.max(w) as usize);
+                        chain.push(new_robot);
+                        let mut curr = new_robot;
+                        let mut found = false;
+                        loop {
+                            let curr1 = (curr.0 - 1, curr.1);
+                            if curr1.0 < 0 || walls.contains(&curr1) {
+                                break;
+                            } else if crates.contains(&curr1) {
+                                chain.push(curr1);
+                                curr = curr1;
+                            } else {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if found {
+                            for c in chain.iter().rev() {
+                                crates.remove(c);
+                                crates.insert((c.0 - 1, c.1));
+                            }
+                            robot = new_robot;
+                        }
+                    }
+                }
+            }
+            _ => panic!("WTF!"),
+        }
+        //println!("{m}");
+        //for i in 0..field.len() {
+        //    for j in 0..field[0].len() {
+        //        if walls.contains(&(i as i64, j as i64)) {
+        //            print!("{}", "#");
+        //        } else if crates.contains(&(i as i64, j as i64)) {
+        //            print!("{}", "O");
+        //        } else if robot == (i as i64, j as i64) {
+        //            print!("{}", "@");
+        //        } else {
+        //            print!("{}", ".");
+        //        }
+        //    }
+        //    println!();
+        //}
+    });
+    let sum = crates.iter().map(|&c| c.0 * 100 + c.1).sum::<i64>();
+    println!("day15 {sum}");
+}
+
 fn main() {
     day_01();
     day_02();
@@ -1026,4 +1215,5 @@ fn main() {
     day_12();
     day_13();
     day_14();
+    day_15();
 }
