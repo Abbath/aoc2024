@@ -1188,6 +1188,7 @@ fn day_15() {
         _ => panic!("WTF!"),
     });
     moves.iter().for_each(|m| {
+        println!("{m}");
         match m {
             '>' => {
                 if robot2.1 < w2 - 1 {
@@ -1263,24 +1264,39 @@ fn day_15() {
                         let mut chain: Vec<HashSet<(i64, i64)>> =
                             Vec::with_capacity(h.max(w2) as usize);
                         chain.push(HashSet::from([new_robot2]));
-                        let mut curr = new_robot2;
-                        let mut found = false;
-                        loop {
-                            let curr1 = (curr.0 + 1, curr.1);
-                            let curr2 = (curr.0 + 1, curr.1 + 1);
-                            let curr0 = (curr.0 + 1, curr.1 - 1);
-                            if curr1.0 >= h || walls2.contains(&curr1) || walls2.contains(&curr2) {
-                                break;
-                            } else if crates2.contains(&curr1)
-                                || crates2.contains(&curr2)
-                                || crates2.contains(&curr0)
-                            {
-                                chain.push(HashSet::from([curr1]));
-                                curr = curr1;
-                            } else {
-                                found = true;
+                        let mut found = true;
+                        'outer: loop {
+                            let hc = chain.last().unwrap().clone();
+                            let mut hc1 = HashSet::new();
+                            for curr in hc.iter() {
+                                let curr1 = (curr.0 + 1, curr.1);
+                                let curr2 = (curr.0 + 1, curr.1 + 1);
+                                let curr0 = (curr.0 + 1, curr.1 - 1);
+                                if curr1.0 >= h
+                                    || walls2.contains(&curr1)
+                                    || walls2.contains(&curr2)
+                                {
+                                    break 'outer;
+                                } else if crates2.contains(&curr1)
+                                    || crates2.contains(&curr2)
+                                    || crates2.contains(&curr0)
+                                {
+                                    if crates2.contains(&curr1) {
+                                        hc1.insert(curr1.clone());
+                                    }
+                                    if crates2.contains(&curr2) {
+                                        hc1.insert(curr2);
+                                    }
+                                    if crates2.contains(&curr0) {
+                                        hc1.insert(curr0);
+                                    }
+                                    found = false;
+                                }
+                            }
+                            if found {
                                 break;
                             }
+                            chain.push(hc1);
                         }
                         if found {
                             for hc in chain.iter().rev() {
@@ -1295,31 +1311,54 @@ fn day_15() {
                 }
             }
             '^' => {
-                if robot2.0 > 1 {
+                if robot2.0 > 0 {
                     let new_robot2 = (robot2.0 - 1, robot2.1);
                     if !walls2.contains(&new_robot2) && !crates2.contains(&new_robot2) {
                         robot2 = new_robot2;
                     } else if crates2.contains(&new_robot2) {
-                        let mut chain: Vec<(i64, i64)> = Vec::with_capacity(h.max(w2) as usize);
-                        chain.push(new_robot2);
-                        let mut curr = new_robot2;
-                        let mut found = false;
-                        loop {
-                            let curr1 = (curr.0 - 1, curr.1);
-                            if curr1.0 < 0 || walls2.contains(&curr1) {
-                                break;
-                            } else if crates2.contains(&curr1) {
-                                chain.push(curr1);
-                                curr = curr1;
-                            } else {
-                                found = true;
+                        let mut chain: Vec<HashSet<(i64, i64)>> =
+                            Vec::with_capacity(h.max(w2) as usize);
+                        chain.push(HashSet::from([new_robot2]));
+                        let mut found = true;
+                        'outer: loop {
+                            let hc = chain.last().unwrap().clone();
+                            let mut hc1 = HashSet::new();
+                            for curr in hc.iter() {
+                                let curr1 = (curr.0 - 1, curr.1);
+                                let curr2 = (curr.0 - 1, curr.1 + 1);
+                                let curr0 = (curr.0 - 1, curr.1 - 1);
+                                if curr1.0 == 0
+                                    || walls2.contains(&curr1)
+                                    || walls2.contains(&curr2)
+                                {
+                                    break 'outer;
+                                } else if crates2.contains(&curr1)
+                                    || crates2.contains(&curr2)
+                                    || crates2.contains(&curr0)
+                                {
+                                    if crates2.contains(&curr1) {
+                                        hc1.insert(curr1.clone());
+                                    }
+                                    if crates2.contains(&curr2) {
+                                        hc1.insert(curr2);
+                                    }
+                                    if crates2.contains(&curr0) {
+                                        hc1.insert(curr0);
+                                    }
+                                    found = false;
+                                }
+                            }
+                            if found {
                                 break;
                             }
+                            chain.push(hc1);
                         }
                         if found {
-                            for c in chain.iter().rev() {
-                                crates2.remove(c);
-                                crates2.insert((c.0 - 1, c.1));
+                            for hc in chain.iter().rev() {
+                                for c in hc.iter() {
+                                    crates2.remove(c);
+                                    crates2.insert((c.0 - 1, c.1));
+                                }
                             }
                             robot2 = new_robot2;
                         }
@@ -1328,7 +1367,6 @@ fn day_15() {
             }
             _ => panic!("WTF!"),
         }
-        println!("{m}");
         for i in 0..h {
             for j in 0..w2 {
                 if walls2.contains(&(i as i64, j as i64)) {
